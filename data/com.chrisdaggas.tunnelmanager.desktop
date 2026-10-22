@@ -1,0 +1,14 @@
+[Desktop Entry]
+Name=Tunnel Manager
+GenericName=Cloudflare Tunnel Manager
+Comment=Manage remotely configured Cloudflare Tunnels, hostnames and connectors
+Exec=tunnel-manager
+Icon=com.chrisdaggas.tunnelmanager
+Terminal=false
+Type=Application
+Categories=Network;GTK;
+Keywords=cloudflare;tunnel;cloudflared;zero trust;dns;ingress;ssh;systemd;
+StartupNotify=true
+StartupWMClass=com.chrisdaggas.tunnelmanager
+SingleMainWindow=true
+DBusActivatable=false

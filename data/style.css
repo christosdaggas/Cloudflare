@@ -1,0 +1,387 @@
+/* Tunnel Manager — application stylesheet
+ *
+ * DELIBERATELY SMALL. libadwaita already styles everything stock, so this file
+ * only holds what no stock class can express. Three rules keep it that way:
+ *
+ *   1. Never redefine a libadwaita class (.title-1, .card, .boxed-list, …).
+ *      Adwaita sizes type in percentages so it follows the user's text-scale
+ *      factor; a `font-size: 24pt` override silently breaks accessibility.
+ *   2. Never write a colour literal outside the token block below. Everything
+ *      else refers to a variable, so light, dark, high contrast and the GNOME
+ *      accent all keep working with no extra rules.
+ *   3. Only add a rule when no stock class can do the job.
+ *
+ * Sections: TOKENS, SHELL, CONTROLS, PRODUCT.
+ */
+
+/* ═══ TOKENS ══════════════════════════════════════════════════════════════
+ * The only place in the project where a colour is written down. Change a
+ * surface once here and every rule below follows.
+ *
+ * Scheme-dependent values are defined twice, under `.scheme-light` and
+ * `.scheme-dark`. The window carries whichever matches, kept in step with
+ * AdwStyleManager by `sync_scheme_class` in ui/window.rs.
+ *
+ * Why not `@media (prefers-color-scheme: dark)`? Because it does not work
+ * here. Adwaita's own stylesheet uses it, so it looks like it should, but GTK
+ * only evaluates that media feature for the theme provider — in an application
+ * stylesheet it never matches. Verified on GTK 4.22.4 by setting the dark value
+ * to red and finding no red pixels on screen.
+ *
+ * Custom properties inherit, so anything defined on the window is visible to
+ * every widget inside it.
+ */
+:root,
+.scheme-light {
+    /* The content half of the shell. Light keeps Adwaita's stock window
+     * background. */
+    --content-bg-color: var(--window-bg-color);
+
+    /* How strongly the accent tints navigation rows. Kept as numbers so the
+     * whole interaction ramp can be retuned in one place. */
+    --nav-hover-tint: 10%;
+    --nav-selected-tint: 16%;
+    --nav-selected-hover-tint: 22%;
+    --nav-selected-active-tint: 28%;
+
+    /* Cards and boxed lists.
+     *
+     * Adwaita lifts them off the page with three stacked shadow layers:
+     *   0 0 0 1px rgb(0 0 6/3%), 0 1px 3px 1px rgb(0 0 6/7%), 0 2px 6px 2px rgb(0 0 6/3%)
+     * This keeps only the hairline, which reads flat while still separating a
+     * card from the surface behind it — necessary in light mode, where
+     * --card-bg-color (#ffffff) sits on --window-bg-color (#fafafb) and would
+     * otherwise be invisible.
+     *
+     * --border-color is itself `currentColor` at --border-opacity, so this
+     * follows the scheme and strengthens to 50% under high contrast, the same
+     * way Adwaita's own high-contrast card border does. */
+    --card-shadow: 0 0 0 1px var(--border-color);
+
+    /* Navigation spacing. Adwaita's defaults are tighter — `padding: 0 8px;
+     * margin: 0 6px 2px` on a row, `padding-top: 6px; padding-bottom: 4px` on
+     * the list. These are roomier, which suits a sidebar with a handful of
+     * entries. Scheme-independent, but kept here so all the tunables are in
+     * one block. */
+    --nav-list-padding: 12px 6px;
+    --nav-row-padding: 8px 12px;
+    --nav-row-margin: 3px 6px;
+    --nav-row-min-height: 40px;
+}
+
+.scheme-dark {
+    /* A step lighter than Adwaita's stock #222226, which separates the content
+     * from the navigation rail more clearly. */
+    --content-bg-color: #343437;
+
+    /* Dark surfaces already separate a card from this background by tone, so
+     * cards, boxed lists, tables and notices go fully flat: no hairline. Every
+     * frame on a page — search field, toggle row, table, notice — then shares
+     * the same borderless design. */
+    --card-shadow: none;
+}
+
+/* High contrast takes the stock surface in both schemes: the custom step
+ * above would wash out the strengthened borders Adwaita applies there. */
+.high-contrast {
+    --content-bg-color: var(--window-bg-color);
+
+    /* The dark theme's flat cards come back with their hairline, which is the
+     * point of high contrast. Declared after `.scheme-dark`, so it wins when
+     * both classes are on the window. */
+    --card-shadow: 0 0 0 1px var(--border-color);
+}
+
+/* ═══ SHELL ═══════════════════════════════════════════════════════════════
+ * Keep this section when you fork.
+ */
+
+/* The content half of the shell.
+ *
+ * Deliberately keyed to our own `.app-content` class rather than Adwaita's
+ * `.content-pane`: AdwOverlaySplitView only applies `.content-pane` while it
+ * is expanded, so a rule hung off that class stops matching the moment the
+ * narrow breakpoint collapses the view, and the background changes colour as
+ * the window is resized. `.app-content` is on the widget at every size.
+ *
+ * The sidebar is left alone — it takes --sidebar-bg-color from Adwaita. */
+.app-content {
+    background-color: var(--content-bg-color);
+}
+
+/* Adwaita draws a 1px seam down the inner edge of the sidebar with
+ * `box-shadow: inset -1px 0 var(--sidebar-border-color)`. Re-pointing that
+ * variable at the sidebar's own background makes the two panes meet with no
+ * visible line — a variable override, so it still follows the scheme.
+ *
+ * High contrast is deliberately left alone: there Adwaita replaces the whole
+ * rule with a `currentColor` mix, and a visible separator is the point. */
+.sidebar-pane {
+    --sidebar-border-color: var(--sidebar-bg-color);
+}
+
+/* Accent-driven navigation states.
+ *
+ * DELIBERATE DEVIATION: stock Adwaita tints sidebar hover and selection with a
+ * neutral `currentColor` mix. These use the accent instead. Because each is a
+ * transparency over --accent-bg-color rather than a fixed colour, they follow
+ * whatever accent the user picks and sit correctly on either surface. */
+.navigation-sidebar row.activatable:hover {
+    background-color: color-mix(in srgb, var(--accent-bg-color) var(--nav-hover-tint), transparent);
+}
+
+.navigation-sidebar row.activatable:selected {
+    background-color: color-mix(in srgb, var(--accent-bg-color) var(--nav-selected-tint), transparent);
+    /* --accent-color, not --accent-bg-color: the standalone accent is the one
+     * meant for text, and it is already darkened or lightened per scheme. */
+    color: var(--accent-color);
+}
+
+.navigation-sidebar row.activatable:selected:hover {
+    background-color: color-mix(in srgb, var(--accent-bg-color) var(--nav-selected-hover-tint), transparent);
+}
+
+.navigation-sidebar row.activatable:selected:active {
+    background-color: color-mix(in srgb, var(--accent-bg-color) var(--nav-selected-active-tint), transparent);
+}
+
+/* Adwaita packs the navigation list tightly. A sidebar with only a handful of
+ * entries has room to breathe, so both the list and its rows get more space.
+ * The row padding is what sets the distance from a row's edge to its icon and
+ * label; the list padding is the gap between the sidebar's edges and the rows. */
+.navigation-sidebar {
+    padding: var(--nav-list-padding);
+}
+
+.navigation-sidebar > row {
+    padding: var(--nav-row-padding);
+    margin: var(--nav-row-margin);
+    min-height: var(--nav-row-min-height);
+}
+
+/* The rail keeps the row height so the icons do not shift vertically as it
+ * collapses, but drops the horizontal padding — at 80px wide there is not room
+ * for it, and the icon is centred anyway. The centring itself is done from code
+ * (`halign` has no CSS equivalent) in `apply_sidebar_state`, ui/window.rs. */
+.rail .navigation-sidebar > row {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.rail .nav-row {
+    margin: 0;
+    min-height: var(--nav-row-min-height);
+}
+
+/* The primary menu's items are flat buttons, so they take the same accent
+ * hover as the navigation rows rather than Adwaita's neutral one. */
+.menu-item:hover {
+    background-color: color-mix(in srgb, var(--accent-bg-color) var(--nav-hover-tint), transparent);
+}
+
+/* A `.toolbar` box in AdwToolbarView's bottom slot. The surface comes from
+ * `.toolbar`; only the height is ours. */
+.status-bar {
+    min-height: 26px;
+    padding: 0 12px 4px 12px;
+}
+
+/* Flatten cards and boxed lists. The selector list mirrors Adwaita's own so
+ * every surface that gets the lift also gets the flattening — a `.card`, an
+ * AdwPreferencesGroup's boxed list, and the separate-row variant. */
+list.boxed-list,
+list.content,
+list.boxed-list-separate > row,
+.card {
+    box-shadow: var(--card-shadow);
+}
+
+/* ═══ CONTROLS ════════════════════════════════════════════════════════════
+ * Custom controls with no stock equivalent. Keep what you still use.
+ */
+
+/* The theme switcher: three circles previewing System / Light / Dark.
+ *
+ * These are the only colour literals outside the token block, and they have to
+ * be: a preview of the light scheme must stay light even while the app is
+ * dark, so it cannot use a variable that flips with the scheme. The values are
+ * Adwaita's own light and dark --window-bg-color. */
+.theme-swatch {
+    border-radius: 9999px;
+    border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.theme-swatch.system {
+    background: linear-gradient(135deg, #fafafb 0%, #fafafb 50%, #222226 50%, #222226 100%);
+}
+
+.theme-swatch.light { background-color: #fafafb; }
+.theme-swatch.dark  { background-color: #222226; }
+
+.theme-button {
+    padding: 4px;
+    min-width: 52px;
+    min-height: 52px;
+}
+
+.theme-button:checked .theme-swatch {
+    border: 3px solid var(--accent-bg-color);
+}
+
+/* ═══ PRODUCT ═════════════════════════════════════════════════════════════
+ * The handful of classes the product pages need that no stock class covers.
+ * Everything here is shape and spacing; every colour comes from a variable.
+ */
+
+/* A status pill: icon, word, semantic tint.
+ *
+ * The tint is Adwaita's, applied by whichever of .success / .warning / .error
+ * / .accent / .dimmed the code put on this box — so it follows light, dark,
+ * high contrast and the user's accent with nothing written down here. The
+ * background is `currentColor` at 10%, which means it takes its hue from the
+ * same class that tints the text and stays legible on any surface. */
+.status-badge {
+    padding: 2px 8px;
+    border-radius: 9999px;
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+/* The quiet state.
+ *
+ * `.dimmed` would be the obvious choice, but it drops the whole subtree to
+ * --dim-opacity (55%), and a *status* is not secondary information even when
+ * the status is "nothing is happening" — at 55% on a light surface the word
+ * stops meeting contrast. This gives the pill the same quiet background as the
+ * semantic ones and leaves the text and icon at full foreground. */
+.status-neutral {
+    color: var(--window-fg-color);
+}
+
+/* Inside a boxed list the badge sits against a card background that is
+ * already distinct from the window, so the fill would read as a second frame.
+ * The icon and the word carry the state on their own there. */
+list.boxed-list .status-badge,
+list.content .status-badge {
+    background-color: transparent;
+    padding: 2px 0;
+}
+
+/* The dashboard's figures. A minimum width stops a one-digit card from
+ * collapsing to the width of its number and makes a row of them line up. */
+.stat-card {
+    min-width: 168px;
+}
+
+/* The share bar at the bottom of a stat card.
+ *
+ * Adwaita's ProgressBar is a 34px-tall control with a bordered trough — a
+ * widget, not a figure. Here it is a hairline that reinforces the detail
+ * line's "3 of 7" in shape, with no trough of its own so it does not read as
+ * a second frame inside the card. The fill keeps whatever the theme draws it
+ * with, which under a .success / .warning / .error card is that class's
+ * remapped accent. */
+.stat-card progressbar trough {
+    min-height: 4px;
+    background-color: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.stat-card progressbar progress {
+    min-height: 4px;
+    border-radius: 9999px;
+}
+
+/* Monospace blocks: a command, a unit file, a log excerpt. --view-bg-color is
+ * the surface Adwaita uses for text views and entries, which is what this is. */
+.code-block {
+    background-color: var(--view-bg-color);
+    border-radius: 12px;
+}
+
+.code-block text {
+    background-color: transparent;
+}
+
+/* Quick actions: a single row of four pills. The default pill padding is
+ * roomier than a one-line label in a quarter of the content needs; trimming
+ * it keeps the button's minimum width well under the 360px floor. */
+.quick-action {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+/* A persistent notice: the same card frame as the page's groups, with the
+ * semantic tint on its icon and text rather than on the surface. */
+.notice {
+    padding: 12px;
+}
+
+/* The status filter fills the row. Five equal cells at 360px leave little
+ * horizontal padding, so trim it rather than ellipsizing a state name. */
+.filter-group > toggle {
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+/* A table or log list inside the same card frame as every group.
+ *
+ * `GtkColumnView` and `GtkListView` draw no frame of their own, so on a
+ * page of bordered groups a bare table reads as unfinished next to them.
+ * Same tokens as the flattened cards above — same background, same radius,
+ * same hairline — so the frame matches everywhere. No padding: like rows in
+ * a boxed list, the table bleeds to the frame's edges. The frame's widget
+ * gets `overflow: hidden` from code (`w::table_card`), which clips the
+ * scrolled rows to the rounded corners. */
+.table-card {
+    background-color: var(--card-bg-color);
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+}
+
+.table-card columnview,
+.table-card listview {
+    background-color: transparent;
+}
+
+/* The tunnel table. Adwaita gives GtkColumnView its own row height; only the
+ * breathing room inside a cell is ours. */
+.tunnel-table > listview > row > cell {
+    padding: 6px 12px;
+}
+
+.tunnel-table > header > button {
+    padding: 6px 12px;
+}
+
+/* Status bar update banner, shown when the GitHub release check finds a
+ * newer version than the running build. The warning tokens tint icon and
+ * link; the pill surface stays a token mix, so both themes and every accent
+ * keep working. */
+.update-banner {
+    background-color: color-mix(in srgb, var(--warning-bg-color) 16%, transparent);
+    border: 1px solid color-mix(in srgb, var(--warning-bg-color) 38%, transparent);
+    border-radius: 7px;
+    padding: 1px 7px;
+}
+
+.update-banner .update-icon {
+    color: var(--warning-color);
+}
+
+.update-banner .update-link {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--warning-color);
+    padding: 0;
+    min-height: 0;
+}
+
+.update-banner-label {
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--warning-color);
+}
+
+/* The always-visible version in the status bar's trailing corner. */
+.app-version-label {
+    font-size: 0.85em;
+}

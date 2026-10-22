@@ -1,0 +1,65 @@
+# Tunnel Manager — example configuration
+#
+# This file is documentation, not a configuration the application reads.
+# Tunnel Manager keeps its settings in SQLite, written from the Settings page,
+# and its secrets in your desktop's credential store. There is no config file
+# to edit and no file anywhere that a token could be pasted into.
+#
+# What follows is the shape of the settings the application stores, so that a
+# diagnostic report or a `sqlite3` session is readable. The values are the
+# defaults.
+#
+#   sqlite3 ~/.local/share/tunnel-manager/tunnel-manager.sqlite3 \
+#     'SELECT key, value FROM settings ORDER BY key'
+
+[settings]
+# The Cloudflare account this application manages. Written by the connection
+# page; 32 hexadecimal characters.
+account_id = ""
+account_name = ""
+
+# The domain offered first in the hostname picker. Entirely optional — tunnels
+# can be created and managed without ever choosing one.
+default_zone_id = ""
+default_zone_name = ""
+
+# "system", "light" or "dark".
+theme = "system"
+
+# Seconds between automatic refreshes; 0 means manual only. The Cloudflare rate
+# limit is 1200 requests per five minutes and is shared with your own dashboard
+# session, so a short interval is not free.
+refresh_interval_secs = 60
+
+# "error", "warn", "info", "debug" or "trace". RUST_LOG overrides it.
+log_level = "info"
+
+# Defaults offered by the Add Host form. Remote control is optional; these are
+# only starting values.
+default_ssh_username = ""
+default_ssh_port = 22
+default_service_unit = "cloudflared.service"
+
+# Set once the connection page has filed a token in the credential store.
+# The token itself is never here, and there is no column it could be in.
+token_saved = false
+
+
+# ── What is NOT in this file, and never will be ─────────────────────────────
+#
+#   The Cloudflare API token   → your desktop's credential store, under the
+#                                service name "com.chrisdaggas.tunnelmanager".
+#   An SSH key passphrase      → the same credential store, keyed by host ID.
+#   A tunnel's run token       → fetched when a deployment needs it and dropped
+#                                immediately afterwards. Never written down.
+
+
+# ── Environment variables ───────────────────────────────────────────────────
+#
+#   RUST_LOG=tunnel_manager=debug
+#       Raises the log level for one run, overriding the Settings page.
+#
+#   TUNNEL_MANAGER_API_BASE=http://127.0.0.1:8787/client/v4
+#       Points the application at a different API endpoint. Intended for
+#       development against a fixture server; refused unless the value is
+#       https:// or a loopback address.

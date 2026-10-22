@@ -1,0 +1,38 @@
+# Build output.
+/target/
+# The compiled resource bundle build.rs generates.
+/data/*.gresource
+
+# The application's own data, if anyone ever runs it from inside the checkout.
+# It contains no secrets by design (see docs/security-model.md), but it does
+# contain the list of a user's hosts and hostnames.
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+
+# Never commit a credential. Nothing in this project writes one to disk, but a
+# `.env` or a pasted token file is an easy accident.
+.env
+.env.*
+*.token
+*.pem
+*.key
+!data/**/*.svg
+credentials.json
+cert.pem
+
+# Local RPM build output. The spec and its instructions are tracked; the
+# tarballs and binaries are not.
+/dist/rpm/build/
+/dist/rpm/*.rpm
+*.src.rpm
+
+# This project runs its checks locally. No GitHub Actions workflows.
+.github/workflows/
+
+# Editor and OS noise.
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store

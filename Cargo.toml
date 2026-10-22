@@ -1,0 +1,134 @@
+[package]
+name = "tunnel-manager"
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.85"
+description = "A GNOME client for managing remotely configured Cloudflare Tunnels"
+license = "MIT"
+readme = "README.md"
+homepage = "https://chrisdaggas.com"
+repository = "https://github.com/christosdaggas/Cloudflare"
+keywords = ["cloudflare", "tunnel", "gtk4", "libadwaita", "gnome"]
+categories = ["gui", "network-programming"]
+
+# A library target as well as a binary: the integration tests in `tests/` link
+# against the library, which is what lets the Cloudflare client, the workflow
+# services and the remote layer be tested end to end without a display.
+[lib]
+name = "tunnel_manager"
+path = "src/lib.rs"
+
+[[bin]]
+name = "tunnel-manager"
+path = "src/main.rs"
+
+[dependencies]
+# ── The desktop shell. Linux-only; see docs/architecture.md for what would
+#    have to be swapped to build this on another platform.
+gtk4 = { version = "0.11", features = ["v4_22"] }
+# `gtk_v4_22` is libadwaita's *own* feature naming the GTK version it was built
+# against; it is what makes Adwaita widgets implement `gtk::Accessible`. Enabling
+# `gtk4/v4_22` does not imply it — they are separate feature namespaces — and
+# without it `ToggleGroup::update_property` does not compile.
+libadwaita = { version = "0.9", features = ["v1_9", "gtk_v4_22"] }
+glib = "0.22"
+gio = "0.22"
+
+# ── Portable core.
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+thiserror = "2"
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde", "std"] }
+url = "2"
+base64 = "0.22"
+rand = "0.9"
+idna = "1"
+
+# HTTP. reqwest 0.13 made `query` an opt-in feature and switched the default
+# TLS backend to rustls; `default-features = false` plus this explicit list
+# gives rustls with the platform certificate verifier and keeps native-tls —
+# and therefore OpenSSL — out of the dependency graph entirely.
+reqwest = { version = "0.13", default-features = false, features = [
+    "rustls",
+    "json",
+    "query",
+    "http2",
+    "charset",
+    "gzip",
+    "system-proxy",
+] }
+tokio = { version = "1", features = [
+    "rt-multi-thread",
+    "macros",
+    "time",
+    "sync",
+    "net",
+    "io-util",
+    "fs",
+    "process",
+] }
+async-channel = "2"
+
+# Diagnostics. Every subscriber this application installs redacts; see
+# services/logging.rs.
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", default-features = false, features = [
+    "std",
+    "fmt",
+    "env-filter",
+    "registry",
+    "ansi",
+] }
+
+# Secrets. `secrecy` keeps them out of Debug output and zeroes them on drop;
+# `keyring` files them in the desktop's Secret Service so they never touch the
+# application's own storage.
+secrecy = { version = "0.10", features = ["serde"] }
+zeroize = { version = "1", features = ["derive"] }
+# keyring 4's default `v1` feature selects the pure-Rust zbus Secret Service
+# backend on Linux, so the build needs no libdbus and no OpenSSL. At run time it
+# still needs a Secret Service provider on the session bus — gnome-keyring or
+# KWallet — and `storage::secrets` degrades with a banner when there is none.
+keyring = "4.1"
+
+# Non-secret persistent state. `default-features = false` matters: rusqlite
+# 0.40's defaults pull in
+# `sqlite-wasm-rs`, which is dead weight on the desktop. `bundled` compiles the
+# SQLite amalgamation with `cc` and pre-generated bindings, so there is no
+# system libsqlite3 and no bindgen.
+rusqlite = { version = "0.40", default-features = false, features = [
+    "bundled",
+    "cache",
+    "chrono",
+    "column_decltype",
+] }
+dirs = "6"
+
+# Optional remote control. Pure Rust: no libssh2, no OpenSSL. Note that russh
+# pins `ssh-key` to an exact release candidate, so key and fingerprint types are
+# always used through `russh::keys::ssh_key` rather than a second direct
+# dependency, which would split the graph into two incompatible `PublicKey`s.
+russh = "0.63"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
+wiremock = "0.6"
+tempfile = "3"
+serde_json = "1"
+
+[build-dependencies]
+glib-build-tools = "0.22"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[profile.dev]
+# The GTK stack is large and almost never the thing being debugged; building
+# dependencies optimised cuts a debug run from seconds to milliseconds.
+opt-level = 0
+
+[profile.dev.package."*"]
+opt-level = 2
