@@ -107,6 +107,7 @@ impl TunnelManagerApplication {
             .activate(|app: &Self, _, _| app.show_whats_new_dialog())
             .build();
 
+        #[cfg(feature = "adw-shortcuts")]
         let shortcuts = gio::ActionEntry::builder("shortcuts")
             .activate(|app: &Self, _, _| app.show_shortcuts_dialog())
             .build();
@@ -151,11 +152,15 @@ impl TunnelManagerApplication {
             })
             .build();
 
+        #[cfg(feature = "adw-shortcuts")]
         self.add_action_entries([about, whats_new, shortcuts, quit, page, sidebar]);
+        #[cfg(not(feature = "adw-shortcuts"))]
+        self.add_action_entries([about, whats_new, quit, page, sidebar]);
 
         // Accelerators are what make an action discoverable from the keyboard;
         // AdwShortcutsDialog below documents the same list for the mouse.
         self.set_accels_for_action("app.quit", &["<Control>q"]);
+        #[cfg(feature = "adw-shortcuts")]
         self.set_accels_for_action("app.shortcuts", &["<Control>question"]);
         self.set_accels_for_action("win.toggle-rail", &["F9"]);
         self.set_accels_for_action("win.refresh", &["<Control>r"]);
@@ -270,6 +275,7 @@ impl TunnelManagerApplication {
         dialog.present(self.parent_widget().as_ref());
     }
 
+    #[cfg(feature = "adw-shortcuts")]
     /// `AdwShortcutsDialog` (libadwaita 1.8) replaces `GtkShortcutsWindow`,
     /// which GTK deprecated in 4.18.
     fn show_shortcuts_dialog(&self) {

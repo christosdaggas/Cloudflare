@@ -577,18 +577,18 @@ impl MainWindow {
             .build();
 
         let about = format!("About {}", branding::APP_NAME);
-        let items: &[(&str, &str, &str)] = &[
-            ("Refresh", "view-refresh-symbolic", "win.refresh"),
-            (
-                "Keyboard Shortcuts",
-                "preferences-desktop-keyboard-shortcuts-symbolic",
-                "app.shortcuts",
-            ),
-            ("What's New", "starred-symbolic", "app.whats-new"),
-            (&about, "help-about-symbolic", "app.about"),
-        ];
+        let mut items: Vec<(&str, &str, &str)> =
+            vec![("Refresh", "view-refresh-symbolic", "win.refresh")];
+        #[cfg(feature = "adw-shortcuts")]
+        items.push((
+            "Keyboard Shortcuts",
+            "preferences-desktop-keyboard-shortcuts-symbolic",
+            "app.shortcuts",
+        ));
+        items.push(("What's New", "starred-symbolic", "app.whats-new"));
+        items.push((&about, "help-about-symbolic", "app.about"));
 
-        for (label, icon, action) in items {
+        for (label, icon, action) in &items {
             list.append(&Self::menu_item(label, icon, action));
         }
 
