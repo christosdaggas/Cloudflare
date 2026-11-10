@@ -55,8 +55,9 @@ pub type Result<T> = std::result::Result<T, StorageError>;
 
 /// `$XDG_DATA_HOME/tunnel-manager`, or the platform equivalent.
 pub fn data_dir() -> PathBuf {
-    dirs::data_dir()
-        .unwrap_or_else(|| PathBuf::from(".").join(".local").join("share"))
+    dirs::home_dir()
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join(".local/share/daggas")
         .join(DATA_DIR_NAME)
 }
 
