@@ -38,8 +38,12 @@ export function Activity() {
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   const [search, setSearch] = useState("");
-  const [severityFilter, setSeverityFilter] = useState<"all" | ActivitySeverity>("all");
-  const [categoryFilter, setCategoryFilter] = useState<"all" | ActivityCategory>("all");
+  const [severityFilter, setSeverityFilter] = useState<
+    "all" | ActivitySeverity
+  >("all");
+  const [categoryFilter, setCategoryFilter] = useState<
+    "all" | ActivityCategory
+  >("all");
   const [selected, setSelected] = useState<number | null>(null);
   const [logs, setLogs] = useState<string[] | null>(null);
   const [logsBusy, setLogsBusy] = useState(false);
@@ -62,8 +66,10 @@ export function Activity() {
   const visible = useMemo(() => {
     const query = search.trim().toLowerCase();
     return activity.filter((event) => {
-      if (severityFilter !== "all" && event.severity !== severityFilter) return false;
-      if (categoryFilter !== "all" && event.category !== categoryFilter) return false;
+      if (severityFilter !== "all" && event.severity !== severityFilter)
+        return false;
+      if (categoryFilter !== "all" && event.category !== categoryFilter)
+        return false;
       if (!query) return true;
       return `${event.summary} ${event.detail ?? ""} ${event.target ?? ""}`
         .toLowerCase()
@@ -102,8 +108,8 @@ export function Activity() {
         "This removes this application's local record. Cloudflare's own audit log is a separate thing and is not affected.",
       body: (
         <Notice>
-          When registering, publishing or deleting, the record is often the only local
-          note of what happened. Export it first if you need it.
+          When registering, publishing or deleting, the record is often the only
+          local note of what happened. Export it first if you need it.
         </Notice>
       ),
       confirmLabel: "Clear",
@@ -118,13 +124,19 @@ export function Activity() {
 
   if (!state) return <LoadingState message="Reading the activity log…" />;
 
-  const event = selected !== null ? activity.find((item) => item.id === selected) : null;
+  const event =
+    selected !== null ? activity.find((item) => item.id === selected) : null;
 
   return (
     <div className="content-inner">
-      <Banner tone="info" icon="dialog-information-symbolic" title="This is not Cloudflare's audit log">
-        These are the calls this application made and what came back. Cloudflare's own
-        audit history is in the dashboard and is deliberately not mirrored here.
+      <Banner
+        tone="info"
+        icon="dialog-information-symbolic"
+        title="This is not Cloudflare's audit log"
+      >
+        These are the calls this application made and what came back.
+        Cloudflare's own audit history is in the dashboard and is deliberately
+        not mirrored here.
       </Banner>
 
       <div className="activity-toolbar">
@@ -132,6 +144,7 @@ export function Activity() {
           <button
             type="button"
             className={`chip${severityFilter === "all" ? " active" : ""}`}
+            aria-pressed={severityFilter === "all"}
             onClick={() => setSeverityFilter("all")}
           >
             All <span className="chip-count">{counts.all}</span>
@@ -141,9 +154,11 @@ export function Activity() {
               key={item}
               type="button"
               className={`chip${severityFilter === item ? " active" : ""}`}
+              aria-pressed={severityFilter === item}
               onClick={() => setSeverityFilter(item)}
             >
-              {severity(item).label} <span className="chip-count">{counts[item]}</span>
+              {severity(item).label}{" "}
+              <span className="chip-count">{counts[item]}</span>
             </button>
           ))}
         </div>
@@ -154,6 +169,7 @@ export function Activity() {
             id="activity-search"
             className="input"
             type="search"
+            aria-label="Search activity"
             placeholder="Search the log…"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -178,10 +194,20 @@ export function Activity() {
         </select>
 
         <div className="row-inline" style={{ marginLeft: "auto" }}>
-          <button type="button" className="btn" onClick={() => void copyReport()} disabled={reportBusy}>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => void copyReport()}
+            disabled={reportBusy}
+          >
             <Copy size={14} /> Copy Report
           </button>
-          <button type="button" className="btn btn-danger" onClick={clear} disabled={activity.length === 0}>
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={clear}
+            disabled={activity.length === 0}
+          >
             <Trash2 size={14} /> Clear
           </button>
         </div>
@@ -191,7 +217,9 @@ export function Activity() {
         <div className="card">
           <EmptyState
             icon="document-open-recent-symbolic"
-            title={activity.length === 0 ? "Nothing recorded yet" : "No events match"}
+            title={
+              activity.length === 0 ? "Nothing recorded yet" : "No events match"
+            }
             description={
               activity.length === 0
                 ? "Requests, host checks, publishes and deletes are recorded here as they happen."
@@ -226,7 +254,10 @@ export function Activity() {
                 role="button"
                 tabIndex={0}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter") setSelected(item.id);
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setSelected(item.id);
+                  }
                 }}
               >
                 <div className={`activity-icon tone-${meta.tone}`}>
@@ -253,13 +284,24 @@ export function Activity() {
       <section className="section">
         <div className="section-heading">
           <h2>Recent log output</h2>
-          <p>Everything here was redacted at the sink before it reached the buffer.</p>
+          <p>
+            Everything here was redacted at the sink before it reached the
+            buffer.
+          </p>
         </div>
         <div className="row-inline">
-          <button type="button" className="btn" onClick={() => void loadLogs()} disabled={logsBusy}>
-            <RefreshCw size={14} className={logsBusy ? "spin" : ""} /> Read the log buffer
+          <button
+            type="button"
+            className="btn"
+            onClick={() => void loadLogs()}
+            disabled={logsBusy}
+          >
+            <RefreshCw size={14} className={logsBusy ? "spin" : ""} /> Read the
+            log buffer
           </button>
-          {logs !== null && <CopyButton value={logs.join("\n")} label="Copy log" />}
+          {logs !== null && (
+            <CopyButton value={logs.join("\n")} label="Copy log" />
+          )}
         </div>
         {logs !== null && (
           <CodeBlock
@@ -279,7 +321,10 @@ export function Activity() {
           description={formatActivityTime(event.at)}
           onClose={() => setSelected(null)}
           footer={
-            <button className="btn btn-primary" onClick={() => setSelected(null)}>
+            <button
+              className="btn btn-primary"
+              onClick={() => setSelected(null)}
+            >
               Close
             </button>
           }

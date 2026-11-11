@@ -4,12 +4,7 @@ import { Plus, RefreshCw, Search } from "lucide-react";
 import { api, errorText } from "../api";
 import { HostnameRow, displayName } from "../components/HostnameRow";
 import { OutcomeDialog } from "../components/OutcomeView";
-import {
-  Banner,
-  EmptyState,
-  LoadingState,
-  Notice,
-} from "../components/ui";
+import { Banner, EmptyState, LoadingState, Notice } from "../components/ui";
 import { useConfirm } from "../components/useConfirm";
 import { useApp } from "../store";
 import type { HostnameSweep, Outcome, PublicHostname } from "../types";
@@ -30,6 +25,7 @@ export function Hostnames() {
   const openDialog = useApp((store) => store.openDialog);
   const navigate = useApp((store) => store.navigate);
   const toast = useApp((store) => store.toast);
+  const hostnameVersion = useApp((store) => store.hostnameVersion);
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   const [sweep, setSweep] = useState<HostnameSweep | null>(null);
@@ -55,14 +51,16 @@ export function Hostnames() {
 
   const signature = useMemo(() => {
     const tunnels =
-      state?.tunnels.map((row) => `${row.tunnel.id}:${row.tunnel.name}`).join("|") ?? "";
+      state?.tunnels
+        .map((row) => `${row.tunnel.id}:${row.tunnel.name}`)
+        .join("|") ?? "";
     const zones = state?.zones.map((zone) => zone.id).join(",") ?? "";
     return `${tunnels}::${zones}`;
   }, [state?.tunnels, state?.zones]);
 
   useEffect(() => {
     void load();
-  }, [signature, load]);
+  }, [signature, hostnameVersion, load]);
 
   const hostnames = sweep?.hostnames ?? [];
 
@@ -159,7 +157,8 @@ export function Hostnames() {
         "The ingress rule is removed and only the DNS record that points at this tunnel is deleted.",
       body: (
         <Notice>
-          An A, AAAA or CNAME record belonging to something else is never removed.
+          An A, AAAA or CNAME record belonging to something else is never
+          removed.
         </Notice>
       ),
       confirmLabel: "Unpublish",
@@ -189,7 +188,11 @@ export function Hostnames() {
   return (
     <div className="content-inner">
       {error && (
-        <Banner tone="error" icon="dialog-error-symbolic" title="Could not read the hostnames">
+        <Banner
+          tone="error"
+          icon="dialog-error-symbolic"
+          title="Could not read the hostnames"
+        >
           {error}
         </Banner>
       )}
@@ -227,11 +230,12 @@ export function Hostnames() {
         </div>
       ) : (
         <>
-          <div className="row-inline spread" style={{ flexWrap: "wrap", gap: 10 }}>
+          <div className="list-toolbar">
             <div className="chips">
               <button
                 type="button"
                 className={`chip${filter === "all" ? " active" : ""}`}
+                aria-pressed={filter === "all"}
                 onClick={() => setFilter("all")}
               >
                 All <span className="chip-count">{counts.all}</span>
@@ -239,6 +243,7 @@ export function Hostnames() {
               <button
                 type="button"
                 className={`chip${filter === "ready" ? " active" : ""}`}
+                aria-pressed={filter === "ready"}
                 onClick={() => setFilter("ready")}
               >
                 Ready <span className="chip-count">{counts.ready}</span>
@@ -246,9 +251,11 @@ export function Hostnames() {
               <button
                 type="button"
                 className={`chip${filter === "attention" ? " active" : ""}`}
+                aria-pressed={filter === "attention"}
                 onClick={() => setFilter("attention")}
               >
-                Needs attention <span className="chip-count">{counts.attention}</span>
+                Needs attention{" "}
+                <span className="chip-count">{counts.attention}</span>
               </button>
             </div>
 
@@ -259,6 +266,7 @@ export function Hostnames() {
                   id="hostname-search"
                   className="input"
                   type="search"
+                  aria-label="Search hostnames"
                   placeholder="Search hostnames, tunnels or origins…"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
@@ -266,18 +274,17 @@ export function Hostnames() {
               </div>
               <button
                 type="button"
-                className="btn"
+                className="btn btn-ghost btn-icon"
+                aria-label="Reload hostnames"
+                title="Reload hostnames"
                 onClick={() => void load()}
                 disabled={loading}
               >
-                <RefreshCw size={14} className={loading ? "spin" : ""} /> Refresh
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => openDialog({ kind: "hostname", tunnel_id: null })}
-              >
-                <Plus size={14} /> Publish
+                <RefreshCw
+                  size={16}
+                  aria-hidden="true"
+                  className={loading ? "spin" : ""}
+                />
               </button>
             </div>
           </div>
@@ -294,7 +301,9 @@ export function Hostnames() {
                   <button
                     type="button"
                     className="btn btn-primary"
-                    onClick={() => openDialog({ kind: "hostname", tunnel_id: null })}
+                    onClick={() =>
+                      openDialog({ kind: "hostname", tunnel_id: null })
+                    }
                   >
                     <Plus size={15} /> Publish a hostname
                   </button>
@@ -388,7 +397,11 @@ export function Hostnames() {
                     outcome.tunnelId,
                     outcome.hostname,
                   );
-                  setOutcome({ ...outcome, title: "Repair DNS", outcome: result });
+                  setOutcome({
+                    ...outcome,
+                    title: "Repair DNS",
+                    outcome: result,
+                  });
                   await load(true);
                 }
               : undefined

@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Loader2, Rocket, Waypoints } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Loader2,
+  Rocket,
+  Waypoints,
+} from "lucide-react";
 
 import { api, errorText } from "../api";
 import { Dialog } from "../components/Dialog";
@@ -72,8 +79,7 @@ export function CreateTunnelDialog({ onClose }: { onClose: () => void }) {
             service: {
               scheme,
               host: target.trim(),
-              port:
-                kind === "host_port" && port.trim() ? Number(port) : null,
+              port: kind === "host_port" && port.trim() ? Number(port) : null,
             },
             zone_id: zoneId || null,
           }
@@ -119,7 +125,7 @@ export function CreateTunnelDialog({ onClose }: { onClose: () => void }) {
   return (
     <Dialog
       title="Create a tunnel"
-      description="Name it, optionally publish a hostname, review the changes, then create it."
+      description="Create a tunnel, optionally add a hostname, then review your changes."
       onClose={onClose}
       wide
       closeOnBackdrop={!busy}
@@ -168,7 +174,11 @@ export function CreateTunnelDialog({ onClose }: { onClose: () => void }) {
                 onClick={() => void toReview()}
                 disabled={busy || !hostnameValid}
               >
-                {busy ? <Loader2 size={14} className="spin" /> : <ArrowRight size={14} />}
+                {busy ? (
+                  <Loader2 size={14} className="spin" />
+                ) : (
+                  <ArrowRight size={14} />
+                )}
                 Review
               </button>
             )}
@@ -178,7 +188,11 @@ export function CreateTunnelDialog({ onClose }: { onClose: () => void }) {
                 onClick={() => void create()}
                 disabled={busy}
               >
-                {busy ? <Loader2 size={14} className="spin" /> : <Waypoints size={14} />}
+                {busy ? (
+                  <Loader2 size={14} className="spin" />
+                ) : (
+                  <Waypoints size={14} />
+                )}
                 Create Tunnel
               </button>
             )}
@@ -187,14 +201,14 @@ export function CreateTunnelDialog({ onClose }: { onClose: () => void }) {
       }
     >
       <div className="dialog-form">
-        <div className="steps">
+        <ol className="wizard-progress" aria-label="Creation progress">
           {STEPS.map((label, index) => (
-            <div
+            <li
               key={label}
-              className={`step${
+              className={`wizard-step${
                 index === step ? " current" : index < step ? " done" : ""
               }`}
-              style={{ flex: 1 }}
+              aria-current={index === step ? "step" : undefined}
             >
               <div className="step-marker">
                 {index < step ? <Check size={13} /> : index + 1}
@@ -202,12 +216,16 @@ export function CreateTunnelDialog({ onClose }: { onClose: () => void }) {
               <div className="step-body">
                 <div className="step-title">{label}</div>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ol>
 
         {error && (
-          <Banner tone="error" icon="dialog-error-symbolic" title="Could not continue">
+          <Banner
+            tone="error"
+            icon="dialog-error-symbolic"
+            title="Could not continue"
+          >
             {error}
           </Banner>
         )}
@@ -217,7 +235,7 @@ export function CreateTunnelDialog({ onClose }: { onClose: () => void }) {
             <Field
               label="Tunnel name"
               htmlFor="create-name"
-              hint="Shown in this application and in the Cloudflare dashboard. A tunnel is created remotely managed, so its ingress can be edited here."
+              hint="A descriptive name, visible here and in Cloudflare. You can change it later."
             >
               <input
                 id="create-name"
@@ -232,8 +250,9 @@ export function CreateTunnelDialog({ onClose }: { onClose: () => void }) {
               />
             </Field>
             <Notice icon="dialog-information-symbolic">
-              Creating a tunnel does not start a connector. The next step can publish a
-              hostname; deployment to a machine is offered after the tunnel exists.
+              Creating a tunnel does not start a connector. The next step can
+              publish a hostname; deployment to a machine is offered after the
+              tunnel exists.
             </Notice>
           </>
         )}
@@ -244,7 +263,8 @@ export function CreateTunnelDialog({ onClose }: { onClose: () => void }) {
               <div>
                 <div className="field-label">Publish a hostname now</div>
                 <div className="field-hint">
-                  Optional. The tunnel can be created empty and given hostnames later.
+                  Optional. The tunnel can be created empty and given hostnames
+                  later.
                 </div>
               </div>
               <Toggle
@@ -303,7 +323,8 @@ export function CreateTunnelDialog({ onClose }: { onClose: () => void }) {
                         setScheme(next);
                         const nextDefault = defaultPort(next);
                         if (nextDefault !== null) setPort(String(nextDefault));
-                        if (schemeTarget(next) === "status_code") setTarget("404");
+                        if (schemeTarget(next) === "status_code")
+                          setTarget("404");
                         else if (schemeTarget(next) === "socket_path")
                           setTarget("/run/app.sock");
                         else if (
@@ -323,7 +344,10 @@ export function CreateTunnelDialog({ onClose }: { onClose: () => void }) {
                   </Field>
 
                   {kind !== "none" && (
-                    <Field label={kind === "socket_path" ? "Socket path" : "Target"} htmlFor="create-target">
+                    <Field
+                      label={kind === "socket_path" ? "Socket path" : "Target"}
+                      htmlFor="create-target"
+                    >
                       <input
                         id="create-target"
                         className="input mono"
@@ -392,8 +416,8 @@ export function CreateTunnelDialog({ onClose }: { onClose: () => void }) {
             </div>
             {review === null && <Loader2 size={18} className="spin" />}
             <Notice icon="dialog-information-symbolic">
-              The tunnel is created first. If the hostname half fails, the tunnel is
-              still reported and can be fixed from its detail page.
+              The tunnel is created first. If the hostname half fails, the
+              tunnel is still reported and can be fixed from its detail page.
             </Notice>
           </>
         )}
@@ -431,8 +455,8 @@ export function CreateTunnelDialog({ onClose }: { onClose: () => void }) {
               <div className="dialog-section">
                 <div className="field-label">Deploy a connector</div>
                 <div className="field-hint">
-                  Optional, and separate from creating the tunnel. A plan is shown before
-                  anything runs.
+                  Optional, and separate from creating the tunnel. A plan is
+                  shown before anything runs.
                 </div>
                 <div className="row-inline">
                   <select
@@ -469,7 +493,9 @@ export function CreateTunnelDialog({ onClose }: { onClose: () => void }) {
             {tunnel && hosts.length === 0 && outcome.manual_instructions && (
               <div className="dialog-section">
                 <div className="row-inline spread">
-                  <span className="field-label">Run the connector yourself</span>
+                  <span className="field-label">
+                    Run the connector yourself
+                  </span>
                   <Badge tone="neutral">No SSH host registered</Badge>
                 </div>
                 <CodeBlock code={outcome.manual_instructions} />
@@ -482,7 +508,11 @@ export function CreateTunnelDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-function previewService(scheme: OriginScheme, target: string, port: string): string {
+function previewService(
+  scheme: OriginScheme,
+  target: string,
+  port: string,
+): string {
   const prefix = originPrefix(scheme);
   switch (schemeTarget(scheme)) {
     case "none":

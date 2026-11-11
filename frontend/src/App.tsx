@@ -6,6 +6,7 @@ import { quitApplication, refreshAll } from "./actions";
 import { DialogHost } from "./dialogs/DialogHost";
 import { Shell } from "./components/Shell";
 import { Toasts } from "./components/Toasts";
+import { StandaloneTitlebar } from "./components/StandaloneTitlebar";
 import { LoadingState } from "./components/ui";
 import {
   Activity,
@@ -152,8 +153,16 @@ export function App() {
   // ── Keyboard shortcuts ───────────────────────────────────────────────
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
       const mod = event.ctrlKey || event.metaKey;
       const key = event.key.toLowerCase();
+
+      // Do not open a second workflow or move focus behind a modal dialog.
+      if (
+        document.querySelector('[role="dialog"]') &&
+        !(mod && (key === "q" || key === "w"))
+      )
+        return;
 
       if (mod && key === "r") {
         event.preventDefault();
@@ -166,7 +175,16 @@ export function App() {
       } else if (event.key === "F9") {
         event.preventDefault();
         useApp.getState().toggleSidebar();
-      } else if (mod && (event.key === "?" || (event.key === "/" && event.shiftKey))) {
+      } else if (event.key === "F10") {
+        const trigger = document.getElementById("main-menu-trigger");
+        if (trigger) {
+          event.preventDefault();
+          trigger.click();
+        }
+      } else if (
+        mod &&
+        (event.key === "?" || (event.key === "/" && event.shiftKey))
+      ) {
         event.preventDefault();
         useApp.getState().openDialog({ kind: "shortcuts" });
       } else if (mod && key === "q") {
@@ -193,6 +211,7 @@ export function App() {
   if (!state) {
     return (
       <div className="splash">
+        <StandaloneTitlebar />
         <div className="splash-mark">
           <img src="/app-icon.svg" alt="" />
         </div>
@@ -203,11 +222,13 @@ export function App() {
   }
 
   const onboarding =
-    state.connection.kind === "disconnected" || state.connection.kind === "failed";
+    state.connection.kind === "disconnected" ||
+    state.connection.kind === "failed";
 
   if (onboarding) {
     return (
       <>
+        <StandaloneTitlebar />
         <Onboarding />
         <Toasts />
         <DialogHost />

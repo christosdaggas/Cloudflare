@@ -1,7 +1,10 @@
 import { Dialog } from "../components/Dialog";
 import { Kbd } from "../components/ui";
 
-const SHORTCUTS: { group: string; items: { label: string; keys: string[] }[] }[] = [
+const SHORTCUTS: {
+  group: string;
+  items: { label: string; keys: string[] }[];
+}[] = [
   {
     group: "General",
     items: [
@@ -14,6 +17,7 @@ const SHORTCUTS: { group: string; items: { label: string; keys: string[] }[] }[]
     group: "Navigation",
     items: [
       { label: "Collapse or expand the sidebar", keys: ["F9"] },
+      { label: "Open the application menu", keys: ["F10"] },
       { label: "Focus the search field", keys: ["Ctrl", "F"] },
       { label: "Refresh everything", keys: ["Ctrl", "R"] },
     ],

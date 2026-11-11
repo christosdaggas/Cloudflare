@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 
 import { Spinner } from "./ui";
 import { X } from "../icons";
@@ -22,40 +22,74 @@ export function Dialog({
   narrow?: boolean;
   closeOnBackdrop?: boolean;
 }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  const descriptionId = useId();
+
+  // Native modal dialogs make the rest of the webview inert, trap Tab and
+  // restore focus to the trigger, without an extra focus-management library.
   useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.stopPropagation();
-        onClose();
-      }
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const trigger = document.activeElement;
+    dialog.showModal();
+    dialog
+      .querySelector<HTMLElement>(
+        "[data-autofocus], [autofocus], input:not([type='hidden']), select, textarea",
+      )
+      ?.focus();
+    return () => {
+      dialog.close();
+      if (trigger instanceof HTMLElement && trigger.isConnected)
+        trigger.focus();
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, []);
 
   return (
-    <div
+    <dialog
+      ref={dialogRef}
       className="dialog-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      aria-describedby={description ? descriptionId : undefined}
+      onCancel={(event) => {
+        event.preventDefault();
+        if (closeOnBackdrop) onClose();
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== "Tab") return;
+        const controls = Array.from(
+          event.currentTarget.querySelectorAll<HTMLElement>(
+            "button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex]:not([tabindex='-1'])",
+          ),
+        ).filter((element) => element.getClientRects().length > 0);
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }}
       onMouseDown={(event) => {
         if (closeOnBackdrop && event.target === event.currentTarget) onClose();
       }}
     >
-      <div
-        className={`dialog${wide ? " wide" : ""}${narrow ? " narrow" : ""}`}
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-      >
+      <div className={`dialog${wide ? " wide" : ""}${narrow ? " narrow" : ""}`}>
         <div className="dialog-header">
           <div className="dialog-header-main">
-            <h2>{title}</h2>
-            {description && <p>{description}</p>}
+            <h2 id={titleId}>{title}</h2>
+            {description && <p id={descriptionId}>{description}</p>}
           </div>
           <button
             type="button"
             className="btn btn-ghost btn-icon dialog-close"
             onClick={onClose}
             aria-label="Close"
+            disabled={!closeOnBackdrop}
           >
             <X size={16} />
           </button>
@@ -63,7 +97,7 @@ export function Dialog({
         <div className="dialog-body">{children}</div>
         {footer && <div className="dialog-footer">{footer}</div>}
       </div>
-    </div>
+    </dialog>
   );
 }
 
@@ -97,7 +131,13 @@ export function ConfirmDialog({
       closeOnBackdrop={!busy}
       footer={
         <>
-          <button className="btn" onClick={onClose} disabled={busy} autoFocus>
+          <button
+            className="btn"
+            onClick={onClose}
+            disabled={busy}
+            autoFocus
+            data-autofocus
+          >
             {cancelLabel}
           </button>
           <button

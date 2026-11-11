@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  type MouseEvent,
-  type ReactNode,
-} from "react";
+import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import {
   ArrowLeft,
   ArrowLeftRight,
@@ -17,53 +11,47 @@ import {
   RefreshCw,
   Server,
   Settings as SettingsIcon,
+  ShieldCheck,
   Waypoints,
   type LucideIcon,
 } from "lucide-react";
 
-import { getCurrentWindow } from "@tauri-apps/api/window";
-
 import { api } from "../api";
 import { chooseTheme, quitApplication, refreshAll } from "../actions";
-import { MenuButton, MenuItem, MenuLabel, MenuSeparator } from "../components/Menu";
+import {
+  MenuButton,
+  MenuItem,
+  MenuLabel,
+  MenuSeparator,
+} from "../components/Menu";
 import { Banner } from "../components/ui";
 import { WindowControls } from "./WindowControls";
 import { useApp, type PageName, type Route } from "../store";
 import type { AppState } from "../types";
+import { beginWindowDrag, toggleMaximize } from "../windowChrome";
 
-/**
- * The window has no native decorations, so the top bar is also the drag
- * region. Buttons, fields and menus inside it must keep their own clicks.
- */
-function isWindowChrome(target: EventTarget | null): boolean {
-  return (
-    target instanceof Element &&
-    Boolean(
-      target.closest(
-        "button, a, input, select, textarea, [role='button'], [data-no-drag]",
-      ),
-    )
-  );
-}
-
-function beginWindowDrag(event: MouseEvent<HTMLElement>) {
-  if (event.button !== 0 || isWindowChrome(event.target)) return;
-  void getCurrentWindow().startDragging();
-}
-
-function toggleMaximize(event: MouseEvent<HTMLElement>) {
-  if (isWindowChrome(event.target)) return;
-  void getCurrentWindow().toggleMaximize();
-}
-
-const NAV: { page: PageName; label: string; icon: LucideIcon }[] = [
-  { page: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { page: "tunnels", label: "Tunnels", icon: Waypoints },
-  { page: "zones", label: "Zones", icon: Globe },
-  { page: "hostnames", label: "Hostnames", icon: ArrowLeftRight },
-  { page: "hosts", label: "Remote Hosts", icon: Server },
-  { page: "activity", label: "Activity", icon: History },
-  { page: "settings", label: "Settings", icon: SettingsIcon },
+const NAV: {
+  page: PageName;
+  label: string;
+  icon: LucideIcon;
+  group: string;
+}[] = [
+  {
+    page: "dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    group: "Workspace",
+  },
+  { page: "tunnels", label: "Tunnels", icon: Waypoints, group: "Workspace" },
+  {
+    page: "hostnames",
+    label: "Hostnames",
+    icon: ArrowLeftRight,
+    group: "Workspace",
+  },
+  { page: "zones", label: "Zones", icon: Globe, group: "Workspace" },
+  { page: "hosts", label: "Remote Hosts", icon: Server, group: "Management" },
+  { page: "activity", label: "Activity", icon: History, group: "Management" },
 ];
 
 export function Shell({ children }: { children: ReactNode }) {
@@ -87,7 +75,10 @@ export function Shell({ children }: { children: ReactNode }) {
 
   return (
     <div className="app-shell">
-      <aside className={`sidebar${collapsed ? " collapsed" : ""}`}>
+      <aside
+        id="app-sidebar"
+        className={`sidebar${collapsed ? " collapsed" : ""}`}
+      >
         <div
           className="sidebar-brand"
           onMouseDown={beginWindowDrag}
@@ -98,43 +89,86 @@ export function Shell({ children }: { children: ReactNode }) {
           </div>
           <div className="brand-text">
             <strong>{bootstrap?.app_name ?? "Tunnel Manager"}</strong>
-            <span>v{bootstrap?.version ?? "1.0.0"}</span>
+            <span>Cloudflare tunnels</span>
           </div>
         </div>
 
-        <div className="sidebar-section-label">Workspace</div>
-        <nav className="nav" aria-label="Main navigation">
-          {NAV.map((item) => {
-            const ItemIcon = item.icon;
-            const active =
-              route.page === item.page ||
-              (item.page === "tunnels" && route.page === "tunnel");
-            return (
-              <button
-                key={item.page}
-                type="button"
-                className={`nav-item${active ? " active" : ""}`}
-                onClick={() => useApp.getState().navigate({ page: item.page })}
-                title={collapsed ? item.label : undefined}
-                aria-current={active ? "page" : undefined}
-              >
-                <ItemIcon size={18} />
-                <span className="nav-label">{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
+        {(["Workspace", "Management"] as const).map((group) => (
+          <div key={group}>
+            <div className="sidebar-section-label">{group}</div>
+            <nav className="nav" aria-label={group}>
+              {NAV.filter((item) => item.group === group).map((item) => {
+                const ItemIcon = item.icon;
+                const active =
+                  route.page === item.page ||
+                  (item.page === "tunnels" && route.page === "tunnel");
+                return (
+                  <button
+                    key={item.page}
+                    type="button"
+                    className={`nav-item${active ? " active" : ""}`}
+                    onClick={() =>
+                      useApp.getState().navigate({ page: item.page })
+                    }
+                    title={item.label}
+                    aria-label={item.label}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    <ItemIcon size={18} aria-hidden="true" />
+                    <span className="nav-label">{item.label}</span>
+                    {(item.page === "tunnels" || item.page === "zones") &&
+                      state && (
+                        <span className="nav-count" aria-hidden="true">
+                          {item.page === "tunnels"
+                            ? state.tunnels.length
+                            : state.zones.length}
+                        </span>
+                      )}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        ))}
 
         <div className="sidebar-spacer" />
 
         <div className="sidebar-footer">
-          <div className="connection-pill">
-            <span className={`connection-dot ${connectionTone(state)}`} />
+          <button
+            type="button"
+            className={`nav-item${route.page === "settings" ? " active" : ""}`}
+            aria-label="Settings"
+            aria-current={route.page === "settings" ? "page" : undefined}
+            title="Settings"
+            onClick={() => useApp.getState().navigate({ page: "settings" })}
+          >
+            <SettingsIcon size={18} aria-hidden="true" />
+            <span className="nav-label">Settings</span>
+          </button>
+          <button
+            type="button"
+            className="connection-pill"
+            title={`${connectionTitle(state)} · ${connectionSubtitle(state)}`}
+            aria-label={`Connection settings: ${connectionTitle(state)}. ${connectionSubtitle(state)}`}
+            onClick={() => useApp.getState().navigate({ page: "settings" })}
+          >
+            {state?.connection.kind === "connected" ? (
+              <ShieldCheck
+                size={18}
+                className="connection-symbol"
+                aria-hidden="true"
+              />
+            ) : (
+              <span
+                className={`connection-dot ${connectionTone(state)}`}
+                aria-hidden="true"
+              />
+            )}
             <div className="sidebar-footer-text">
               <strong>{connectionTitle(state)}</strong>
               <span>{connectionSubtitle(state)}</span>
             </div>
-          </div>
+          </button>
         </div>
       </aside>
 
@@ -146,12 +180,18 @@ export function Shell({ children }: { children: ReactNode }) {
         >
           <button
             type="button"
-            className="btn btn-ghost btn-icon"
+            className="btn btn-ghost btn-icon sidebar-toggle"
             onClick={toggleSidebar}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-expanded={!collapsed}
+            aria-controls="app-sidebar"
             title="Toggle sidebar (F9)"
           >
-            {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+            {collapsed ? (
+              <PanelLeftOpen size={18} />
+            ) : (
+              <PanelLeftClose size={18} />
+            )}
           </button>
 
           {route.page === "tunnel" && (
@@ -175,12 +215,13 @@ export function Shell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="header-actions">
-            <HeaderActions route={route} onNew={() => openDialog(newDialogFor(route))} />
+            <HeaderActions
+              route={route}
+              onNew={() => openDialog(newDialogFor(route))}
+            />
           </div>
 
-          <div className="header-divider" />
-
-          <MenuButton label="Main menu">
+          <MenuButton label="Main menu" id="main-menu-trigger">
             <MenuItem
               icon="preferences-system-symbolic"
               label="Refresh Everything"
@@ -189,31 +230,39 @@ export function Shell({ children }: { children: ReactNode }) {
             />
             <MenuSeparator />
             <MenuLabel>Appearance</MenuLabel>
-            <MenuItem label="Follow the system" onClick={() => void chooseTheme("system")} />
+            <MenuItem
+              label="Follow the system"
+              onClick={() => void chooseTheme("system")}
+            />
             <MenuItem label="Light" onClick={() => void chooseTheme("light")} />
             <MenuItem label="Dark" onClick={() => void chooseTheme("dark")} />
             <MenuSeparator />
             <MenuItem
-              label="Keyboard Shortcuts"
+              label="Keyboard Shortcuts…"
               shortcut="Ctrl ?"
               onClick={() => openDialog({ kind: "shortcuts" })}
             />
             <MenuItem
-              label="What's New"
+              label="What's New…"
               onClick={() => openDialog({ kind: "whats-new" })}
             />
             <MenuItem
-              label="About Tunnel Manager"
+              label="About Tunnel Manager…"
               onClick={() => openDialog({ kind: "about" })}
             />
             <MenuSeparator />
-            <MenuItem label="Quit" shortcut="Ctrl Q" onClick={() => void quitApplication()} danger />
+            <MenuItem
+              label="Quit"
+              shortcut="Ctrl Q"
+              onClick={() => void quitApplication()}
+              danger
+            />
           </MenuButton>
 
           <WindowControls />
         </header>
 
-        <div className="content" ref={contentRef}>
+        <main className="content" ref={contentRef} aria-label={meta.title}>
           {update && (
             <div className="content-inner" style={{ marginBottom: 16 }}>
               <Banner
@@ -230,12 +279,13 @@ export function Shell({ children }: { children: ReactNode }) {
                   </button>
                 }
               >
-                A newer release is on GitHub. This version is {bootstrap?.version}.
+                A newer release is on GitHub. This version is{" "}
+                {bootstrap?.version}.
               </Banner>
             </div>
           )}
           {children}
-        </div>
+        </main>
       </div>
     </div>
   );
@@ -249,11 +299,27 @@ function HeaderActions({ route, onNew }: { route: Route; onNew: () => void }) {
 
   if (route.page === "dashboard") {
     return (
-      <ActionButton
-        icon={<RefreshCw size={15} className={busy.includes("tunnels") ? "spin" : ""} />}
-        label="Refresh"
-        onClick={() => void refresh()}
-      />
+      <>
+        <ActionButton
+          icon={
+            <RefreshCw
+              size={15}
+              className={busy.includes("tunnels") ? "spin" : ""}
+            />
+          }
+          label="Refresh"
+          onClick={() => void refresh()}
+        />
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() =>
+            useApp.getState().openDialog({ kind: "create-tunnel" })
+          }
+        >
+          <Plus size={15} aria-hidden="true" /> New Tunnel
+        </button>
+      </>
     );
   }
 
@@ -261,7 +327,12 @@ function HeaderActions({ route, onNew }: { route: Route; onNew: () => void }) {
     return (
       <>
         <ActionButton
-          icon={<RefreshCw size={15} className={busy.includes("tunnels") ? "spin" : ""} />}
+          icon={
+            <RefreshCw
+              size={15}
+              className={busy.includes("tunnels") ? "spin" : ""}
+            />
+          }
           label="Refresh"
           onClick={() => void refresh()}
         />
@@ -275,7 +346,12 @@ function HeaderActions({ route, onNew }: { route: Route; onNew: () => void }) {
   if (route.page === "zones") {
     return (
       <ActionButton
-        icon={<RefreshCw size={15} className={busy.includes("zones") ? "spin" : ""} />}
+        icon={
+          <RefreshCw
+            size={15}
+            className={busy.includes("zones") ? "spin" : ""}
+          />
+        }
         label="Refresh"
         onClick={() => void refresh()}
       />
@@ -286,7 +362,12 @@ function HeaderActions({ route, onNew }: { route: Route; onNew: () => void }) {
     return (
       <>
         <ActionButton
-          icon={<RefreshCw size={15} className={busy.includes("tunnels") ? "spin" : ""} />}
+          icon={
+            <RefreshCw
+              size={15}
+              className={busy.includes("tunnels") ? "spin" : ""}
+            />
+          }
           label="Refresh"
           onClick={() => void refresh()}
         />
@@ -301,7 +382,12 @@ function HeaderActions({ route, onNew }: { route: Route; onNew: () => void }) {
     return (
       <>
         <ActionButton
-          icon={<RefreshCw size={15} className={busy.includes("hosts") ? "spin" : ""} />}
+          icon={
+            <RefreshCw
+              size={15}
+              className={busy.includes("hosts") ? "spin" : ""}
+            />
+          }
           label="Refresh"
           onClick={() => void refresh()}
         />
@@ -315,7 +401,12 @@ function HeaderActions({ route, onNew }: { route: Route; onNew: () => void }) {
   if (route.page === "tunnel") {
     return (
       <ActionButton
-        icon={<RefreshCw size={15} className={busy.includes("tunnels") ? "spin" : ""} />}
+        icon={
+          <RefreshCw
+            size={15}
+            className={busy.includes("tunnels") ? "spin" : ""}
+          />
+        }
         label="Refresh"
         onClick={() => void refresh()}
       />
@@ -335,9 +426,15 @@ function ActionButton({
   onClick: () => void;
 }) {
   return (
-    <button type="button" className="btn" onClick={onClick}>
+    <button
+      type="button"
+      className="btn btn-ghost refresh-button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+    >
       {icon}
-      <span>{label}</span>
+      <span className="refresh-label">{label}</span>
     </button>
   );
 }
@@ -363,7 +460,9 @@ function pageMeta(
     const row = state?.tunnels.find((item) => item.tunnel.id === route.id);
     return {
       title: row?.tunnel.name ?? "Tunnel",
-      subtitle: row ? "Tunnel details, hostnames and connectors" : "Loading tunnel…",
+      subtitle: row
+        ? "Tunnel details, hostnames and connectors"
+        : "Loading tunnel…",
       icon: Waypoints,
     };
   }
@@ -372,7 +471,7 @@ function pageMeta(
     case "dashboard":
       return {
         title: "Dashboard",
-        subtitle: "Health, reach and the next useful action",
+        subtitle: "Your network at a glance",
         icon: LayoutDashboard,
       };
     case "tunnels":
@@ -388,7 +487,9 @@ function pageMeta(
     case "zones":
       return {
         title: "Zones",
-        subtitle: state ? `${state.zones.length} domain${state.zones.length === 1 ? "" : "s"} the token can see` : "Domains",
+        subtitle: state
+          ? `${state.zones.length} domain${state.zones.length === 1 ? "" : "s"} the token can see`
+          : "Domains",
         icon: Globe,
       };
     case "hostnames":
@@ -406,7 +507,8 @@ function pageMeta(
     case "activity":
       return {
         title: "Activity",
-        subtitle: "This application's local record — not Cloudflare's audit log",
+        subtitle:
+          "This application's local record — not Cloudflare's audit log",
         icon: History,
       };
     case "settings":

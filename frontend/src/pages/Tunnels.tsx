@@ -9,7 +9,12 @@ import {
   LoadingState,
   StatusBadge,
 } from "../components/ui";
-import { configSource, formatTime, tunnelLastActive, tunnelStatus } from "../status";
+import {
+  configSource,
+  formatTime,
+  tunnelLastActive,
+  tunnelStatus,
+} from "../status";
 
 type Filter = "all" | "healthy" | "degraded" | "down" | "inactive";
 type SortKey = "name" | "status" | "connectors" | "hostnames" | "last_active";
@@ -83,7 +88,8 @@ export function Tunnels() {
       const matchesFilter =
         filter === "all" ||
         (filter === "inactive"
-          ? row.tunnel.status.kind === "inactive" || row.tunnel.status.kind === "other"
+          ? row.tunnel.status.kind === "inactive" ||
+            row.tunnel.status.kind === "other"
           : row.tunnel.status.kind === filter);
       if (!matchesFilter) return false;
       if (!query) return true;
@@ -112,7 +118,9 @@ export function Tunnels() {
         case "hostnames":
           return (a.hostname_count ?? -1) - (b.hostname_count ?? -1);
         case "last_active":
-          return (tunnelLastActive(a.tunnel) ?? "").localeCompare(tunnelLastActive(b.tunnel) ?? "");
+          return (tunnelLastActive(a.tunnel) ?? "").localeCompare(
+            tunnelLastActive(b.tunnel) ?? "",
+          );
       }
     });
 
@@ -130,7 +138,11 @@ export function Tunnels() {
   return (
     <div className="content-inner">
       {state.tunnels_error && (
-        <Banner tone="error" icon="dialog-error-symbolic" title="The tunnel list could not be loaded">
+        <Banner
+          tone="error"
+          icon="dialog-error-symbolic"
+          title="The tunnel list could not be loaded"
+        >
           {state.tunnels_error}
         </Banner>
       )}
@@ -149,13 +161,14 @@ export function Tunnels() {
       )}
 
       {rows.length > 0 && (
-        <div className="row-inline spread" style={{ flexWrap: "wrap", gap: 10 }}>
+        <div className="list-toolbar">
           <div className="chips">
             {FILTERS.map((item) => (
               <button
                 key={item.name}
                 type="button"
                 className={`chip${filter === item.name ? " active" : ""}`}
+                aria-pressed={filter === item.name}
                 onClick={() => setFilter(item.name)}
               >
                 {item.label}
@@ -170,6 +183,7 @@ export function Tunnels() {
               id="tunnel-search"
               className="input"
               type="search"
+              aria-label="Search tunnels"
               placeholder="Search tunnels, IDs or hosts…"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -181,9 +195,15 @@ export function Tunnels() {
       {rows.length === 0 ? (
         <div className="card">
           <EmptyState
-            icon={state.tunnels_error ? "network-offline-symbolic" : "network-vpn-symbolic"}
+            icon={
+              state.tunnels_error
+                ? "network-offline-symbolic"
+                : "network-vpn-symbolic"
+            }
             title={
-              state.tunnels_error ? "The tunnel list is unavailable" : "No tunnels yet"
+              state.tunnels_error
+                ? "The tunnel list is unavailable"
+                : "No tunnels yet"
             }
             description={
               state.tunnels_error
@@ -228,8 +248,18 @@ export function Tunnels() {
           <table className="table">
             <thead>
               <tr>
-                <SortHeader label="Tunnel" column="name" sort={sort} onSort={setSort} />
-                <SortHeader label="Status" column="status" sort={sort} onSort={setSort} />
+                <SortHeader
+                  label="Tunnel"
+                  column="name"
+                  sort={sort}
+                  onSort={setSort}
+                />
+                <SortHeader
+                  label="Status"
+                  column="status"
+                  sort={sort}
+                  onSort={setSort}
+                />
                 <SortHeader
                   label="Connectors"
                   column="connectors"
@@ -265,9 +295,20 @@ export function Tunnels() {
                 >
                   <td>
                     <div className="cell-main row-inline">
-                      <span className="truncate">{row.tunnel.name}</span>
+                      <button
+                        type="button"
+                        className="table-link truncate"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          navigate({ page: "tunnel", id: row.tunnel.id });
+                        }}
+                      >
+                        {row.tunnel.name}
+                      </button>
                       {row.tunnel.config_source.kind !== "cloudflare" && (
-                        <Badge tone="warning">{configSource(row.tunnel.config_source)}</Badge>
+                        <Badge tone="warning">
+                          {configSource(row.tunnel.config_source)}
+                        </Badge>
                       )}
                     </div>
                     <div className="cell-sub">{row.tunnel.id}</div>
@@ -279,18 +320,28 @@ export function Tunnels() {
                   <td className="num hide-sm">{row.hostname_count ?? "—"}</td>
                   <td className="hide-md">
                     {row.managed_hosts.length > 0 ? (
-                      <span className="truncate" style={{ maxWidth: 200, display: "inline-block" }}>
+                      <span
+                        className="truncate"
+                        style={{ maxWidth: 200, display: "inline-block" }}
+                      >
                         {row.managed_hosts.join(", ")}
                       </span>
                     ) : (
                       <span className="dimmed">—</span>
                     )}
                   </td>
-                  <td className="hide-md">{formatTime(tunnelLastActive(row.tunnel))}</td>
+                  <td className="hide-md">
+                    {formatTime(tunnelLastActive(row.tunnel))}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+      {rows.length > 0 && (
+        <div className="list-caption">
+          {visible.length} of {rows.length} tunnels
         </div>
       )}
     </div>

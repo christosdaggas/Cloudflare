@@ -62,6 +62,11 @@ cargo run                          # terminal 2: the Tauri window
 The debug binary loads the Vite dev server; the release binary embeds the built
 frontend.
 
+For UI work without credentials, open Vite's `/tests/design-preview.html`.
+This [isolated preview](frontend/tests/README.md) uses sample data and mocked
+Tauri commands; it cannot change real tunnels or hosts. The screenshot above
+uses this sample account.
+
 ## Getting started
 
 1. Create an API token at **Cloudflare → My Profile → API Tokens**. It needs

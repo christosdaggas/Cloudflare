@@ -63,7 +63,9 @@ export function Hosts() {
   const [local, setLocal] = useState<LocalState | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [logs, setLogs] = useState<{ title: string; lines: string[] } | null>(null);
+  const [logs, setLogs] = useState<{ title: string; lines: string[] } | null>(
+    null,
+  );
   const [transport, setTransport] = useState<TransportTarget | null>(null);
   const [manual, setManual] = useState<string | null>(null);
   const [snippet, setSnippet] = useState<string | null>(null);
@@ -106,7 +108,11 @@ export function Hosts() {
     return () => {
       cancelled = true;
     };
-  }, [state?.settings.default_ssh_username, state?.settings.default_service_unit, unit]);
+  }, [
+    state?.settings.default_ssh_username,
+    state?.settings.default_service_unit,
+    unit,
+  ]);
 
   function askLocal(action: ServiceAction) {
     const run = async () => {
@@ -140,7 +146,8 @@ export function Hosts() {
           : "Restarting interrupts traffic for a few seconds while the connector reconnects.",
       body: (
         <Notice>
-          The tunnel itself is not deleted, and its DNS records stay as they are.
+          The tunnel itself is not deleted, and its DNS records stay as they
+          are.
         </Notice>
       ),
       confirmLabel: actionLabel(action),
@@ -226,8 +233,8 @@ export function Hosts() {
           : "Restarting interrupts traffic for a few seconds while the connector reconnects.",
       body: (
         <Notice>
-          The tunnel and its DNS records are not changed. Stopping a connector is not the
-          same as deleting a tunnel.
+          The tunnel and its DNS records are not changed. Stopping a connector
+          is not the same as deleting a tunnel.
         </Notice>
       ),
       confirmLabel: actionLabel(action),
@@ -316,10 +323,10 @@ export function Hosts() {
         icon="dialog-information-symbolic"
         title="Remote control is optional"
       >
-        Everything on the Cloudflare side works without it. A host profile adds SSH
-        control: start, stop and restart cloudflared, read its journal, pin its transport
-        and deploy a connector. Host keys are pinned, and every privileged action is
-        previewed.
+        Everything on the Cloudflare side works without it. A host profile adds
+        SSH control: start, stop and restart cloudflared, read its journal, pin
+        its transport and deploy a connector. Host keys are pinned, and every
+        privileged action is previewed.
       </Banner>
 
       <section className="section">
@@ -333,26 +340,37 @@ export function Hosts() {
             <SymbolicIcon name="applications-system-symbolic" size={16} />
             <h3>Local cloudflared</h3>
             <div style={{ marginLeft: "auto" }} className="row-inline">
-              {local && <StatusBadge status={serviceState(local.service_state)} />}
+              {local && (
+                <StatusBadge status={serviceState(local.service_state)} />
+              )}
               <button
                 type="button"
                 className="btn btn-ghost btn-icon"
                 onClick={() => void loadLocal()}
                 aria-label="Refresh the local connector"
               >
-                <RefreshCw size={15} className={busy === "local" ? "spin" : ""} />
+                <RefreshCw
+                  size={15}
+                  className={busy === "local" ? "spin" : ""}
+                />
               </button>
             </div>
           </div>
 
           <div className="card-body stack">
             {localError && (
-              <Banner tone="warning" icon="dialog-warning-symbolic" title="Local control is not available">
+              <Banner
+                tone="warning"
+                icon="dialog-warning-symbolic"
+                title="Local control is not available"
+              >
                 {localError}
               </Banner>
             )}
 
-            {!local && !localError && <LoadingState message="Inspecting this machine…" />}
+            {!local && !localError && (
+              <LoadingState message="Inspecting this machine…" />
+            )}
 
             {local && (
               <>
@@ -369,7 +387,9 @@ export function Hosts() {
                   </div>
                   <div className="property">
                     <div className="property-label">Transport</div>
-                    <div className="property-value">{transportLabel(local.protocol)}</div>
+                    <div className="property-value">
+                      {transportLabel(local.protocol)}
+                    </div>
                   </div>
                   <div className="property">
                     <div className="property-label">Enabled at boot</div>
@@ -384,7 +404,9 @@ export function Hosts() {
                 </div>
 
                 {blockingReason && (
-                  <Notice icon="dialog-information-symbolic">{blockingReason}</Notice>
+                  <Notice icon="dialog-information-symbolic">
+                    {blockingReason}
+                  </Notice>
                 )}
 
                 <div className="row-inline wrap">
@@ -443,7 +465,11 @@ export function Hosts() {
         <div className="section-heading">
           <h2>Registered hosts</h2>
           <div className="row-inline">
-            <button type="button" className="btn" onClick={() => void showManual()}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => void showManual()}
+            >
               <FileCode2 size={14} /> Manual setup
             </button>
             <button
@@ -476,9 +502,15 @@ export function Hosts() {
         ) : (
           <div className="stack-sm">
             {hosts.map((host) => {
-              const statusEntry = state.host_status.find((item) => item.id === host.id);
-              const status = remoteStatus(statusEntry?.status ?? { kind: "unknown" });
-              const detail = remoteStatusDetail(statusEntry?.status ?? { kind: "unknown" });
+              const statusEntry = state.host_status.find(
+                (item) => item.id === host.id,
+              );
+              const status = remoteStatus(
+                statusEntry?.status ?? { kind: "unknown" },
+              );
+              const detail = remoteStatusDetail(
+                statusEntry?.status ?? { kind: "unknown" },
+              );
               const tunnel = tunnels.find(
                 (row) => row.tunnel.id === host.tunnel_id,
               )?.tunnel;
@@ -487,7 +519,7 @@ export function Hosts() {
 
               return (
                 <div className="group" key={host.id}>
-                  <div className="row">
+                  <div className="row host-profile-heading">
                     <div className="row-icon">
                       <Server size={16} />
                     </div>
@@ -529,7 +561,11 @@ export function Hosts() {
                         className="btn btn-sm"
                         disabled={hostBusy || !trusted}
                         onClick={() => askHostService(host, "start")}
-                        title={trusted ? "Start the service" : "Trust the host key first"}
+                        title={
+                          trusted
+                            ? "Start the service"
+                            : "Trust the host key first"
+                        }
                       >
                         <Play size={13} />
                       </button>
@@ -538,7 +574,11 @@ export function Hosts() {
                         className="btn btn-sm"
                         disabled={hostBusy || !trusted}
                         onClick={() => askHostService(host, "stop")}
-                        title={trusted ? "Stop the service" : "Trust the host key first"}
+                        title={
+                          trusted
+                            ? "Stop the service"
+                            : "Trust the host key first"
+                        }
                       >
                         <Square size={13} />
                       </button>
@@ -547,7 +587,11 @@ export function Hosts() {
                         className="btn btn-sm"
                         disabled={hostBusy || !trusted}
                         onClick={() => askHostService(host, "restart")}
-                        title={trusted ? "Restart the service" : "Trust the host key first"}
+                        title={
+                          trusted
+                            ? "Restart the service"
+                            : "Trust the host key first"
+                        }
                       >
                         <RefreshCw size={13} />
                       </button>
@@ -566,11 +610,15 @@ export function Hosts() {
                     <div className="property-grid">
                       <div className="property">
                         <div className="property-label">Service unit</div>
-                        <div className="property-value mono">{host.service_unit}</div>
+                        <div className="property-value mono">
+                          {host.service_unit}
+                        </div>
                       </div>
                       <div className="property">
                         <div className="property-label">Tunnel</div>
-                        <div className="property-value">{tunnel?.name ?? "Not associated"}</div>
+                        <div className="property-value">
+                          {tunnel?.name ?? "Not associated"}
+                        </div>
                       </div>
                       <div className="property">
                         <div className="property-label">Host key</div>
@@ -580,7 +628,9 @@ export function Hosts() {
                       </div>
                       <div className="property">
                         <div className="property-label">Last reached</div>
-                        <div className="property-value">{formatTime(host.last_seen_at)}</div>
+                        <div className="property-value">
+                          {formatTime(host.last_seen_at)}
+                        </div>
                       </div>
                     </div>
 
@@ -607,7 +657,8 @@ export function Hosts() {
                           openDialog({
                             kind: "deployment",
                             host_id: host.id,
-                            tunnel_id: host.tunnel_id ?? tunnels[0]?.tunnel.id ?? "",
+                            tunnel_id:
+                              host.tunnel_id ?? tunnels[0]?.tunnel.id ?? "",
                           })
                         }
                       >
@@ -633,8 +684,9 @@ export function Hosts() {
 
                     {!trusted && (
                       <Notice icon="channel-secure-symbolic">
-                        Nothing is sent to this host until its key has been read and
-                        trusted. Use <strong>Verify Key</strong> to see the fingerprint.
+                        Nothing is sent to this host until its key has been read
+                        and trusted. Use <strong>Verify Key</strong> to see the
+                        fingerprint.
                       </Notice>
                     )}
                   </div>
@@ -665,8 +717,8 @@ export function Hosts() {
               </>
             ) : (
               <div className="field-hint">
-                Set a default SSH user in Settings to generate a ready-made sudoers rule
-                scoped to <span className="mono">{unit}</span>.
+                Set a default SSH user in Settings to generate a ready-made
+                sudoers rule scoped to <span className="mono">{unit}</span>.
               </div>
             )}
           </div>
@@ -723,8 +775,9 @@ export function Hosts() {
           <div className="stack">
             <CodeBlock code={manual} />
             <Notice>
-              Remote control is optional. The tunnel's health still comes from Cloudflare,
-              so a connector started by hand appears on the Tunnels page.
+              Remote control is optional. The tunnel's health still comes from
+              Cloudflare, so a connector started by hand appears on the Tunnels
+              page.
             </Notice>
           </div>
         </Dialog>
@@ -743,7 +796,9 @@ function TransportDialog({
   onClose: () => void;
 }) {
   const toast = useApp((store) => store.toast);
-  const [protocol, setProtocol] = useState<TransportProtocol | null>(target.current);
+  const [protocol, setProtocol] = useState<TransportProtocol | null>(
+    target.current,
+  );
   const [understood, setUnderstood] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -787,27 +842,32 @@ function TransportDialog({
     >
       <div className="stack">
         <div className="chips">
-          {([null, "quic", "http2"] as (TransportProtocol | null)[]).map((option) => (
-            <button
-              key={option ?? "auto"}
-              type="button"
-              className={`chip${protocol === option ? " active" : ""}`}
-              onClick={() => setProtocol(option)}
-            >
-              {transportLabel(option)}
-            </button>
-          ))}
+          {([null, "quic", "http2"] as (TransportProtocol | null)[]).map(
+            (option) => (
+              <button
+                key={option ?? "auto"}
+                type="button"
+                className={`chip${protocol === option ? " active" : ""}`}
+                onClick={() => setProtocol(option)}
+              >
+                {transportLabel(option)}
+              </button>
+            ),
+          )}
         </div>
 
         <div className="field-hint">{transportExplanation(protocol)}</div>
 
         <Notice icon="dialog-warning-symbolic">
-          Changing the transport writes (or removes) a systemd drop-in, reloads systemd
-          and restarts the unit. Traffic is interrupted for a few seconds.
+          Changing the transport writes (or removes) a systemd drop-in, reloads
+          systemd and restarts the unit. Traffic is interrupted for a few
+          seconds.
         </Notice>
 
         <div className="row-inline spread">
-          <span className="field-hint">I understand the service will restart.</span>
+          <span className="field-hint">
+            I understand the service will restart.
+          </span>
           <Toggle
             checked={understood}
             onChange={setUnderstood}

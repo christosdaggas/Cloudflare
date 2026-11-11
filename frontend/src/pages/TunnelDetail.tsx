@@ -71,6 +71,7 @@ export function TunnelDetail({ tunnelId }: { tunnelId: string }) {
   const openDialog = useApp((store) => store.openDialog);
   const toast = useApp((store) => store.toast);
   const setState = useApp((store) => store.setState);
+  const hostnameVersion = useApp((store) => store.hostnameVersion);
   const { confirm, dialog: confirmDialog } = useConfirm();
 
   const row = state?.tunnels.find((item) => item.tunnel.id === tunnelId);
@@ -123,7 +124,7 @@ export function TunnelDetail({ tunnelId }: { tunnelId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [tunnelId, tunnel?.name]);
+  }, [tunnelId, tunnel?.name, hostnameVersion]);
 
   useEffect(() => {
     let cancelled = false;

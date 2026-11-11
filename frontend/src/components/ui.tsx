@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";import { writeText as clipboardWrite } from "@tauri-apps/plugin-clipboard-manager";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { writeText as clipboardWrite } from "@tauri-apps/plugin-clipboard-manager";
 
 import {
   Check,
@@ -65,7 +66,10 @@ export function Banner({
   action?: ReactNode;
 }) {
   return (
-    <div className={`banner ${tone}`} role={tone === "error" ? "alert" : "status"}>
+    <div
+      className={`banner ${tone}`}
+      role={tone === "error" ? "alert" : "status"}
+    >
       <SymbolicIcon name={icon} size={17} />
       <div className="banner-main">
         {title && <div className="banner-title">{title}</div>}
@@ -169,9 +173,13 @@ export function StatCard({
         <div className={`stat-icon tone-${tone}`}>
           <SymbolicIcon name={icon} size={16} />
         </div>
+        <div className="stat-label">{label}</div>
       </div>
-      <div className="stat-value">{value}</div>
-      <div className="stat-label">{label}</div>
+      <div
+        className={`stat-value${typeof value === "string" && value.length > 4 ? " stat-value-text" : ""}`}
+      >
+        {value}
+      </div>
       {detail && <div className="stat-detail">{detail}</div>}
     </>
   );
@@ -358,7 +366,10 @@ export function Expander({
         }}
       >
         {header}
-        <div className="row-actions" onClick={(event) => event.stopPropagation()}>
+        <div
+          className="row-actions"
+          onClick={(event) => event.stopPropagation()}
+        >
           {actions}
           <button
             type="button"
@@ -406,7 +417,11 @@ export function ClosableNotice({
     <div className="banner info">
       <SymbolicIcon name="dialog-information-symbolic" size={17} />
       <div className="banner-main">{children}</div>
-      <button className="btn btn-ghost btn-icon" onClick={onClose} aria-label="Dismiss">
+      <button
+        className="btn btn-ghost btn-icon"
+        onClick={onClose}
+        aria-label="Dismiss"
+      >
         <X size={15} />
       </button>
     </div>
