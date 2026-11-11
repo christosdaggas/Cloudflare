@@ -247,7 +247,6 @@ p {
   display: flex;
   flex-direction: column;
   background: var(--bg-sidebar);
-  border-right: 1px solid var(--border);
   transition: width var(--transition);
   overflow: hidden;
 }
@@ -260,7 +259,7 @@ p {
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 18px 16px 14px;
+  padding: 15px 16px;
   min-height: 64px;
 }
 
@@ -447,8 +446,7 @@ p {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 18px;
-  border-bottom: 1px solid var(--border);
+  padding: 0 12px 0 18px;
   background: var(--bg-header);
   position: sticky;
   top: 0;
@@ -493,6 +491,39 @@ p {
   height: 20px;
   background: var(--border);
   margin: 0 4px;
+}
+
+.window-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+}
+
+.window-control {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg-secondary);
+  transition: background var(--transition), color var(--transition);
+}
+
+.window-control:hover {
+  background: var(--bg-hover);
+  color: var(--fg);
+}
+
+.window-control:active {
+  background: var(--bg-active);
+}
+
+.window-control.close:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .content {

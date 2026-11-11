@@ -1,4 +1,10 @@
-import { useMemo, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  type MouseEvent,
+  type ReactNode,
+} from "react";
 import {
   ArrowLeft,
   ArrowLeftRight,
@@ -15,12 +21,40 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { getCurrentWindow } from "@tauri-apps/api/window";
+
 import { api } from "../api";
 import { chooseTheme, quitApplication, refreshAll } from "../actions";
 import { MenuButton, MenuItem, MenuLabel, MenuSeparator } from "../components/Menu";
 import { Banner } from "../components/ui";
+import { WindowControls } from "./WindowControls";
 import { useApp, type PageName, type Route } from "../store";
 import type { AppState } from "../types";
+
+/**
+ * The window has no native decorations, so the top bar is also the drag
+ * region. Buttons, fields and menus inside it must keep their own clicks.
+ */
+function isWindowChrome(target: EventTarget | null): boolean {
+  return (
+    target instanceof Element &&
+    Boolean(
+      target.closest(
+        "button, a, input, select, textarea, [role='button'], [data-no-drag]",
+      ),
+    )
+  );
+}
+
+function beginWindowDrag(event: MouseEvent<HTMLElement>) {
+  if (event.button !== 0 || isWindowChrome(event.target)) return;
+  void getCurrentWindow().startDragging();
+}
+
+function toggleMaximize(event: MouseEvent<HTMLElement>) {
+  if (isWindowChrome(event.target)) return;
+  void getCurrentWindow().toggleMaximize();
+}
 
 const NAV: { page: PageName; label: string; icon: LucideIcon }[] = [
   { page: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -43,11 +77,22 @@ export function Shell({ children }: { children: ReactNode }) {
 
   const meta = useMemo(() => pageMeta(route, state), [route, state]);
   const Icon = meta.icon;
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // A page change starts at the top. Without this the scroll position from
+  // the previous page is inherited by the next one.
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0 });
+  }, [route]);
 
   return (
     <div className="app-shell">
       <aside className={`sidebar${collapsed ? " collapsed" : ""}`}>
-        <div className="sidebar-brand">
+        <div
+          className="sidebar-brand"
+          onMouseDown={beginWindowDrag}
+          onDoubleClick={toggleMaximize}
+        >
           <div className="brand-mark">
             <img src="/app-icon.svg" alt="" />
           </div>
@@ -94,7 +139,11 @@ export function Shell({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="main">
-        <header className="headerbar">
+        <header
+          className="headerbar"
+          onMouseDown={beginWindowDrag}
+          onDoubleClick={toggleMaximize}
+        >
           <button
             type="button"
             className="btn btn-ghost btn-icon"
@@ -160,9 +209,11 @@ export function Shell({ children }: { children: ReactNode }) {
             <MenuSeparator />
             <MenuItem label="Quit" shortcut="Ctrl Q" onClick={() => void quitApplication()} danger />
           </MenuButton>
+
+          <WindowControls />
         </header>
 
-        <div className="content">
+        <div className="content" ref={contentRef}>
           {update && (
             <div className="content-inner" style={{ marginBottom: 16 }}>
               <Banner

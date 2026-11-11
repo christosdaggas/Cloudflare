@@ -20,7 +20,7 @@
         "minHeight": 560,
         "resizable": true,
         "center": true,
-        "decorations": true,
+        "decorations": false,
         "theme": null
       }
     ],
@@ -39,6 +39,6 @@
     ],
     "category": "Network",
     "shortDescription": "Manage remotely configured Cloudflare Tunnels",
-    "longDescription": "An unofficial desktop client for managing remotely configured Cloudflare Tunnels: their hostnames, their DNS records and — optionally, over SSH — the cloudflared service on the machines that serve them."
+    "longDescription": "An unofficial desktop client for managing remotely configured Cloudflare Tunnels: their hostnames, their DNS records and \u2014 optionally, over SSH \u2014 the cloudflared service on the machines that serve them."
   }
 }
