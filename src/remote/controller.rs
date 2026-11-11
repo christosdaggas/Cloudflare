@@ -19,6 +19,7 @@ use crate::domain::host::{RemoteHost, RemoteServiceState};
 
 use super::commands::ServiceAction;
 use super::error::RemoteResult;
+use serde::{Deserialize, Serialize};
 
 /// Boxed because the trait is used through `Arc<dyn RemoteConnectorController>`
 /// and `async fn` in a trait is not dyn-compatible.
@@ -56,7 +57,7 @@ impl RemoteRequest {
 }
 
 /// A host key seen for the first time, for the trust prompt.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct HostKey {
     /// `SHA256:…`, exactly as OpenSSH prints it, so a user can compare it with
     /// `ssh-keyscan` output character for character.
@@ -71,7 +72,7 @@ pub struct HostKey {
 /// must be asked before an action is offered, and each is separately `false`
 /// rather than collapsed into one "ready" flag — the UI explains which check
 /// failed, because "it did not work" is not a useful thing to tell someone.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Preflight {
     pub reachable: bool,
     pub host_key_matched: bool,
@@ -183,7 +184,7 @@ impl Default for Preflight {
 }
 
 /// The result of a start/stop/restart.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ServiceOutcome {
     pub action: ServiceAction,
     pub state_before: RemoteServiceState,
@@ -203,7 +204,7 @@ impl ServiceOutcome {
 }
 
 /// One step of a deployment, as shown in the preview and as executed.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DeploymentStep {
     /// What the step does, in a sentence.
     pub description: String,
@@ -218,7 +219,7 @@ pub struct DeploymentStep {
 }
 
 /// A previewable plan. Nothing runs until the user has seen this and agreed.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DeploymentPlan {
     pub tunnel_id: String,
     pub tunnel_name: String,
@@ -240,7 +241,7 @@ impl DeploymentPlan {
 }
 
 /// What actually happened when a plan was applied.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DeploymentOutcome {
     /// Steps that completed, in order.
     pub completed: Vec<String>,

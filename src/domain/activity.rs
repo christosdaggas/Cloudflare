@@ -10,8 +10,10 @@
 //! by way of a screen that forgot to call the redacting formatter.
 
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ActivitySeverity {
     Info,
     Success,
@@ -51,7 +53,8 @@ impl ActivitySeverity {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ActivityCategory {
     /// A call to the Cloudflare API that is not one of the more specific
     /// categories below.
@@ -107,7 +110,7 @@ impl ActivityCategory {
 }
 
 /// One line of the activity view.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ActivityEvent {
     pub id: u64,
     pub at: DateTime<Utc>,

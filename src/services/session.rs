@@ -13,9 +13,11 @@ use crate::cloudflare::models::TokenStatus;
 use crate::cloudflare::{Cancel, CloudflareClient, Timeouts};
 use crate::domain::account::{PermissionState, TokenCapabilities};
 use crate::domain::{Account, Zone};
+use serde::Serialize;
 
 /// Where the application stands with Cloudflare.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(tag = "kind", content = "data", rename_all = "snake_case")]
 pub enum ConnectionState {
     /// No token has been provided yet. The onboarding page is shown.
     Disconnected,
@@ -46,7 +48,7 @@ impl ConnectionState {
 }
 
 /// What a successful token check found out.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct TokenCheck {
     pub status: TokenStatus,
     pub accounts: Vec<Account>,

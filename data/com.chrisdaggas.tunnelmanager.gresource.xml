@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<gresources>
-  <gresource prefix="/com/chrisdaggas/tunnelmanager">
-    <file>style.css</file>
-    <file alias="icons/scalable/apps/com.chrisdaggas.tunnelmanager.svg">icons/hicolor/scalable/apps/com.chrisdaggas.tunnelmanager.svg</file>
-    <file alias="icons/scalable/apps/com.chrisdaggas.tunnelmanager-symbolic.svg">icons/hicolor/symbolic/apps/com.chrisdaggas.tunnelmanager-symbolic.svg</file>
-  </gresource>
-</gresources>

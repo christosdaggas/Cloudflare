@@ -8,9 +8,10 @@
 use rusqlite::Connection;
 
 use super::db::Result;
+use serde::{Deserialize, Serialize};
 
 /// The settings, with their defaults.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Settings {
     /// The account the user picked. `None` means the first run has not
     /// finished.
@@ -99,14 +100,6 @@ impl Settings {
             .find(|(seconds, _)| *seconds == self.refresh_interval_secs)
             .map(|(_, label)| *label)
             .unwrap_or("Custom")
-    }
-
-    pub fn color_scheme(&self) -> libadwaita::ColorScheme {
-        match self.theme.as_str() {
-            "light" => libadwaita::ColorScheme::ForceLight,
-            "dark" => libadwaita::ColorScheme::ForceDark,
-            _ => libadwaita::ColorScheme::Default,
-        }
     }
 }
 
@@ -434,20 +427,5 @@ mod tests {
             Some(std::time::Duration::from_secs(60))
         );
         assert_eq!(every_minute.refresh_interval_label(), "Every minute");
-    }
-
-    #[test]
-    fn the_theme_maps_to_a_libadwaita_scheme() {
-        use libadwaita::ColorScheme;
-        let scheme = |theme: &str| {
-            Settings {
-                theme: theme.into(),
-                ..Settings::default()
-            }
-            .color_scheme()
-        };
-        assert_eq!(scheme("system"), ColorScheme::Default);
-        assert_eq!(scheme("light"), ColorScheme::ForceLight);
-        assert_eq!(scheme("dark"), ColorScheme::ForceDark);
     }
 }

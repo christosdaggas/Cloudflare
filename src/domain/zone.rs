@@ -1,7 +1,9 @@
 //! Zones — the domains on the account.
 
+use serde::{Deserialize, Serialize};
 /// A zone's activation state, as Cloudflare reports it.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", content = "data", rename_all = "snake_case")]
 pub enum ZoneStatus {
     /// Serving traffic.
     Active,
@@ -78,7 +80,7 @@ impl ZoneStatus {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Zone {
     pub id: String,
     pub name: String,

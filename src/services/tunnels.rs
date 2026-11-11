@@ -15,10 +15,11 @@ use crate::domain::config::OriginRequestUpdate;
 use crate::domain::hostname::OriginService;
 use crate::domain::tunnel::{Connector, Tunnel, TunnelSummary};
 use crate::services::hostnames::{self, PublishRequest, Status, Step, StepResult};
+use serde::{Deserialize, Serialize};
 
 /// A tunnel plus the extra facts the list view shows, which the list endpoint
 /// does not include.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TunnelRow {
     pub tunnel: Tunnel,
     /// `None` until the configuration has been read for this tunnel.
@@ -108,7 +109,7 @@ pub async fn rename(
 
 /// What deleting a tunnel will affect, gathered before the confirmation is
 /// shown so the dialog can be specific rather than generic.
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct DeleteImpact {
     pub hostnames: Vec<String>,
     pub connector_count: usize,
@@ -224,7 +225,7 @@ pub async fn disconnect_connector(
 // ── The create wizard ────────────────────────────────────────────────────
 
 /// What the wizard collected.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateRequest {
     pub account_id: String,
     pub name: String,
@@ -232,7 +233,7 @@ pub struct CreateRequest {
     pub hostname: Option<HostnameRequest>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HostnameRequest {
     pub hostname: String,
     pub path: Option<String>,

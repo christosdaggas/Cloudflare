@@ -8,9 +8,11 @@
 //! purpose so that no screen can accidentally present one as the other.
 
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 /// What Cloudflare says about a tunnel, from the edge.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", content = "data", rename_all = "snake_case")]
 pub enum TunnelStatus {
     /// Every registered connector has all four of its connections up.
     Healthy,
@@ -97,7 +99,8 @@ impl TunnelStatus {
 }
 
 /// Where the tunnel's ingress configuration lives.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", content = "data", rename_all = "snake_case")]
 pub enum ConfigSource {
     /// Held by Cloudflare and editable through the API. This is the only kind
     /// this application creates, and the only kind whose configuration it will
@@ -159,7 +162,8 @@ impl ConfigSource {
 
 /// How the tunnel was created. Only `cfd_tunnel` is a cloudflared tunnel;
 /// the others are different products sharing the endpoint.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", content = "data", rename_all = "snake_case")]
 pub enum TunnelKind {
     Cfd,
     Warp,
@@ -188,7 +192,7 @@ impl TunnelKind {
 }
 
 /// One `cloudflared` process registered against a tunnel.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Connector {
     /// The client UUID. This is what a `DELETE .../connections` call targets,
     /// and what identifies one machine among several serving one tunnel.
@@ -240,7 +244,7 @@ impl Connector {
 }
 
 /// One of the four connections a connector opens to the edge.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Connection {
     pub id: String,
     pub colo_name: String,
@@ -252,7 +256,7 @@ pub struct Connection {
 }
 
 /// A tunnel, as the application models it.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Tunnel {
     pub id: String,
     pub account_tag: String,
@@ -302,7 +306,7 @@ impl Tunnel {
 
 /// The counts the dashboard shows. Kept as a type so the dashboard cannot
 /// silently disagree with the tunnel list about what "degraded" means.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TunnelSummary {
     pub healthy: usize,
     pub degraded: usize,
@@ -337,7 +341,8 @@ impl TunnelSummary {
 }
 
 /// The filter chips above the tunnel list.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum TunnelFilter {
     All,
     Healthy,

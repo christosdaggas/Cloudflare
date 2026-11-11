@@ -1,7 +1,8 @@
 //! Accounts, and what the token is allowed to do on one.
 
+use serde::Serialize;
 /// A Cloudflare account the token can see.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Account {
     pub id: String,
     pub name: String,
@@ -27,7 +28,8 @@ impl Account {
 /// that needs it succeeded. That is why every variant has an "unknown" case:
 /// claiming a permission is missing when the request simply has not been made
 /// yet would be a lie the user cannot act on.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum PermissionState {
     Unknown,
     Granted,
@@ -61,7 +63,7 @@ impl PermissionState {
 }
 
 /// One row of the permission checklist on the connection page.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct RequiredPermission {
     /// The name exactly as it appears in the Cloudflare dashboard's token
     /// editor, so the user can find it without translating.
@@ -94,7 +96,7 @@ pub const REQUIRED_PERMISSIONS: &[RequiredPermission] = &[
 ];
 
 /// The state of all three, as far as the application has been able to tell.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize)]
 pub struct TokenCapabilities {
     pub tunnels: PermissionStateSlot,
     pub zones: PermissionStateSlot,
@@ -103,7 +105,7 @@ pub struct TokenCapabilities {
 
 /// `PermissionState` with a `Default` of `Unknown`, so a freshly built
 /// capabilities record does not claim anything.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct PermissionStateSlot(pub PermissionState);
 
 impl Default for PermissionStateSlot {

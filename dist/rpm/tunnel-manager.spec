@@ -14,14 +14,15 @@ License:        MIT
 URL:            https://chrisdaggas.com
 Source0:        %{name}-%{version}.tar.gz
 
-# Built against GTK 4.22 and libadwaita 1.9 APIs. The soname dependencies are
-# detected automatically; these pin the versions the interface needs.
-Requires:       gtk4 >= 4.22
-Requires:       libadwaita >= 1.9
+# Tauri 2 uses WebKitGTK 4.1 with GTK 3 on Linux. The soname dependencies are
+# detected automatically; these name the stack the interface needs.
+Requires:       webkit2gtk4.1
+Requires:       gtk3
+Requires:       libsoup3
 Recommends:     gnome-keyring
 
 %description
-Tunnel Manager is a native GNOME client for the Cloudflare API. It connects
+Tunnel Manager is a desktop client for the Cloudflare API. It connects
 with a scoped API token, lists the tunnels on an account, and lets you create
 them, publish public hostnames to them, inspect their connectors and remove
 them again — all through remotely managed tunnel configuration, so nothing
@@ -39,8 +40,9 @@ endorsed by, or produced by Cloudflare, Inc.
 %setup -q
 
 %build
-# The release binary is built beforehand with `cargo build --release` and
-# shipped in the source tarball; there is nothing to compile here.
+# The release binary is built beforehand with `cargo build --release` after
+# the frontend build, and shipped in the source tarball; there is nothing to
+# compile here.
 
 %install
 install -Dm755 tunnel-manager %{buildroot}%{_bindir}/tunnel-manager

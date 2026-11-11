@@ -9,9 +9,11 @@
 
 use crate::domain::config::OriginRequest;
 use crate::domain::validation::{self, ValidationError, ValidationResult};
+use serde::{Deserialize, Serialize};
 
 /// The schemes Cloudflare accepts in an ingress rule's `service` field.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum OriginScheme {
     Http,
     Https,
@@ -112,7 +114,8 @@ impl OriginScheme {
 
 /// What the origin's second field holds, which decides how the editor labels
 /// and validates it.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum TargetKind {
     HostPort,
     SocketPath,
@@ -121,7 +124,7 @@ pub enum TargetKind {
 }
 
 /// A parsed `service` value from an ingress rule.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct OriginService {
     pub scheme: OriginScheme,
     /// The host for a `host:port` scheme, the path for a socket, the code for
@@ -333,7 +336,7 @@ fn split_host_port(authority: &str) -> ValidationResult<(String, Option<u16>)> {
 }
 
 /// A DNS record, as far as this application cares about one.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DnsRecord {
     pub id: String,
     pub zone_id: String,
@@ -379,7 +382,8 @@ impl DnsRecord {
 }
 
 /// How the zone's DNS compares with what the tunnel needs.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", content = "data", rename_all = "snake_case")]
 pub enum DnsState {
     /// A proxied CNAME to this tunnel exists. Nothing to do.
     Correct { record_id: String },
@@ -503,7 +507,7 @@ impl DnsState {
 ///
 /// Not `Eq`: the origin behaviour can carry arbitrary preserved JSON, and
 /// `serde_json::Value` holds floats.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PublicHostname {
     pub hostname: String,
     pub path: Option<String>,
