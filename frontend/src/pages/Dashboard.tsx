@@ -105,6 +105,19 @@ export function Dashboard() {
             </Banner>
           )}
 
+          <div className="dashboard-grid">
+            <section className="section">
+              <div className="section-heading">
+                <h2>Tunnels at a glance</h2>
+                <button
+                  type="button"
+                  className="btn-link"
+                  onClick={() => navigate({ page: "tunnels" })}
+                >
+                  Open Tunnels <ArrowRight size={12} style={{ verticalAlign: -1 }} />
+                </button>
+              </div>
+
           <div className="stat-grid">
             <StatCard
               value={counts.healthy}
@@ -139,19 +152,6 @@ export function Dashboard() {
               onClick={() => show("inactive")}
             />
           </div>
-
-          <div className="dashboard-grid">
-            <section className="section">
-              <div className="section-heading">
-                <h2>Tunnels at a glance</h2>
-                <button
-                  type="button"
-                  className="btn-link"
-                  onClick={() => navigate({ page: "tunnels" })}
-                >
-                  Open Tunnels <ArrowRight size={12} style={{ verticalAlign: -1 }} />
-                </button>
-              </div>
 
               <div className="card">
                 <div className="card-body stack-sm">

@@ -23,7 +23,7 @@
   --bg: #fafafb;
   --bg-elevated: #ffffff;
   --bg-sidebar: #f1f1f4;
-  --bg-header: color-mix(in srgb, var(--bg) 84%, transparent);
+  --bg-header: var(--bg);
   --bg-hover: rgba(0, 0, 0, 0.045);
   --bg-active: rgba(0, 0, 0, 0.08);
   --bg-input: #ffffff;
@@ -75,7 +75,7 @@
   --bg: #1b1b1f;
   --bg-elevated: #25252a;
   --bg-sidebar: #202024;
-  --bg-header: color-mix(in srgb, var(--bg) 82%, transparent);
+  --bg-header: var(--bg);
   --bg-hover: rgba(255, 255, 255, 0.06);
   --bg-active: rgba(255, 255, 255, 0.1);
   --bg-input: #2a2a30;
@@ -450,7 +450,6 @@ p {
   padding: 0 18px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-header);
-  backdrop-filter: blur(14px);
   position: sticky;
   top: 0;
   z-index: 20;
@@ -1971,14 +1970,22 @@ p {
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 20px;
   align-items: start;
+}
+
+.dashboard-grid .stat-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 @media (max-width: 900px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-grid .stat-grid {
+    grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
   }
 }
 
