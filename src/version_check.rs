@@ -9,7 +9,7 @@
 //! there): one request to `releases/latest`, a strict size cap, a silent
 //! failure mode, and a numeric comparison that ignores a leading `v`.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tracing::{debug, warn};
 
 /// GitHub repo coordinates. The repository also carries the RPM packaging;
@@ -21,7 +21,7 @@ const GITHUB_REPO: &str = "cloudflare";
 const MAX_RESPONSE_BYTES: usize = 512 * 1024;
 
 /// Result of a successful version check.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct UpdateInfo {
     /// Latest version string (e.g. "1.2.0").
     pub latest_version: String,

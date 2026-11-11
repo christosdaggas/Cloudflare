@@ -144,7 +144,8 @@ impl OriginRequest {
 }
 
 /// How an ingress edit should handle the rule's `originRequest`.
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "kind", content = "data", rename_all = "snake_case")]
 pub enum OriginRequestUpdate {
     /// Leave an existing rule unchanged. A new rule gets no `originRequest`.
     #[default]

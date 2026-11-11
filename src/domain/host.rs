@@ -13,6 +13,7 @@
 use std::path::PathBuf;
 
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 /// How to authenticate to a host.
 ///
@@ -20,7 +21,8 @@ use chrono::{DateTime, Utc};
 /// reusable server password in an application database, it cannot be
 /// restricted by the server the way an authorized-keys entry can, and every
 /// deployment target for this application already has SSH keys.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", content = "data", rename_all = "snake_case")]
 pub enum RemoteAuth {
     /// Use whatever `ssh-agent` is offering. Nothing is stored and nothing is
     /// read from disk, which makes this the right default.
@@ -65,7 +67,8 @@ pub const DEFAULT_SERVICE_UNIT: &str = "cloudflared.service";
 /// The usual reason to pin `http2` is a network where long-lived UDP flows
 /// stall: the tunnel looks degraded, POST bodies arrive truncated, and
 /// requests that never complete vanish before the origin sees them.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum TransportProtocol {
     /// QUIC over UDP. The default, and the faster of the two on a network
     /// that carries UDP well.
@@ -163,7 +166,7 @@ impl TransportProtocol {
 }
 
 /// A saved host profile.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RemoteHost {
     pub id: i64,
     pub name: String,
@@ -202,7 +205,7 @@ impl RemoteHost {
 }
 
 /// A host being added, before it has an ID.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RemoteHostDraft {
     pub name: String,
     pub address: String,
@@ -237,7 +240,8 @@ fn whoami_fallback() -> String {
 }
 
 /// What `systemctl is-active` and friends reported.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", content = "data", rename_all = "snake_case")]
 pub enum RemoteServiceState {
     Active,
     Inactive,
@@ -298,7 +302,8 @@ impl RemoteServiceState {
 }
 
 /// Whether a host answered, and what it said.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", content = "data", rename_all = "snake_case")]
 pub enum RemoteStatus {
     /// Never contacted since the application started.
     Unknown,

@@ -9,7 +9,7 @@
 
   <description>
     <p>
-      Tunnel Manager is a native GNOME client for the Cloudflare API. It
+      Tunnel Manager is a desktop client for the Cloudflare API. It
       connects with a scoped API token, lists the tunnels on an account, and
       lets you create them, publish public hostnames to them, inspect their
       connectors and remove them again — all through remotely managed tunnel
@@ -43,7 +43,7 @@
   </keywords>
 
   <requires>
-    <display_length compare="ge">360</display_length>
+    <display_length compare="ge">760</display_length>
     <internet>always</internet>
   </requires>
 
@@ -64,9 +64,10 @@
   <releases>
     <release version="1.0.0" date="2026-10-22">
       <description>
-        <p>First stable release: a native GNOME client for Fedora with Cloudflare
-        Tunnels, public hostnames and DNS, zone visibility, optional SSH remote
-        control and local cloudflared control.</p>
+        <p>First stable release: a Tauri desktop client for Cloudflare Tunnels,
+        public hostnames and DNS, zone visibility, optional SSH remote control and
+        local cloudflared control. Light, dark and system themes follow the GNOME
+        accent colour.</p>
       </description>
     </release>
   </releases>

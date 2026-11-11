@@ -21,13 +21,15 @@ use crate::cloudflare::{Cancel, CloudflareClient};
 use crate::domain::config::{IngressRule, OriginRequestUpdate, TunnelConfig};
 use crate::domain::hostname::{DnsState, OriginService};
 use crate::domain::validation::{self, ValidationError};
+use serde::{Deserialize, Serialize};
 
 /// The comment written on records this application creates, so a later
 /// `dns_records` listing can tell them apart from the user's own.
 pub const RECORD_COMMENT: &str = "Managed by Tunnel Manager";
 
 /// The steps a publish or unpublish goes through, in order.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Step {
     ReadConfiguration,
     CheckDns,
@@ -54,7 +56,8 @@ impl Step {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Status {
     Done,
     /// Deliberately not attempted — no zone selected, nothing to remove.
@@ -80,7 +83,7 @@ impl Status {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StepResult {
     pub step: Step,
     pub status: Status,
@@ -115,7 +118,8 @@ impl StepResult {
 }
 
 /// What the user can safely do next when something went wrong.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", content = "data", rename_all = "snake_case")]
 pub enum Recovery {
     /// Nothing changed; the same operation can simply be tried again.
     Retry,
@@ -180,7 +184,7 @@ impl Recovery {
 ///
 /// Not `Eq`: an ingress rule can carry arbitrary preserved JSON, and
 /// `serde_json::Value` holds floats.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Outcome {
     pub hostname: String,
     pub steps: Vec<StepResult>,
@@ -221,7 +225,7 @@ impl Outcome {
 }
 
 /// Everything a publish needs.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PublishRequest {
     pub account_id: String,
     pub tunnel_id: String,

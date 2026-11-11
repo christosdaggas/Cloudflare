@@ -40,7 +40,7 @@ pub struct TokenStatusDto {
 }
 
 /// What `/user/tokens/verify` established.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TokenStatus {
     pub id: Option<String>,
     /// `active`, `disabled` or `expired`.

@@ -12,14 +12,18 @@ install it on.
 ## 1. Install the build tools
 
 ```sh
-sudo dnf install rpm-build gtk4-devel libadwaita-devel rust cargo
+sudo dnf install rpm-build rust cargo nodejs npm \
+  webkit2gtk4.1-devel libsoup3-devel gtk3-devel \
+  javascriptcoregtk4.1-devel pkgconf-pkg-config
 ```
 
 ## 2. Build the release binary
 
-From the repository root:
+From the repository root, build the frontend first so its assets are embedded:
 
 ```sh
+npm --prefix frontend ci
+npm --prefix frontend run build
 cargo build --release --locked
 ```
 
@@ -98,7 +102,7 @@ deleted too.
 - Name: `tunnel-manager`
 - Version: `1.0.0`
 - Licence: MIT
-- Runtime: GTK 4.22+, libadwaita 1.9+
+- Runtime: WebKitGTK 4.1, GTK 3, libsoup 3
 - Recommended: `gnome-keyring`
 - Installed files: binary, desktop entry, AppStream metadata, two icons and
   the licence

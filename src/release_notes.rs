@@ -2,6 +2,9 @@
 //!
 //! Kept as plain data so the dialog needs no per-release code. Newest first.
 
+use serde::Serialize;
+
+#[derive(Debug, Serialize)]
 pub struct Release {
     pub version: &'static str,
     pub date: &'static str,

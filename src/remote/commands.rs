@@ -19,6 +19,7 @@
 //!    can act on instead of hanging on a prompt nobody can see.
 
 use crate::domain::validation::{self, ValidationError, ValidationResult};
+use serde::{Deserialize, Serialize};
 
 /// The maximum number of journal lines this application will ever ask for.
 /// Logs can contain anything the service chose to print, so the amount pulled
@@ -27,7 +28,8 @@ pub const MAX_LOG_LINES: u16 = 200;
 pub const DEFAULT_LOG_LINES: u16 = 50;
 
 /// What a service action asks systemd to do.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ServiceAction {
     Start,
     Stop,

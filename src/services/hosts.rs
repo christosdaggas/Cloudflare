@@ -27,6 +27,7 @@ use crate::remote::controller::{
     ServiceOutcome,
 };
 use crate::remote::{RemoteConnectorController, RemoteError, RemoteResult};
+use serde::{Deserialize, Serialize};
 
 /// Validates a draft before it is written to the database.
 ///
@@ -72,7 +73,7 @@ pub async fn probe_host_key(
 }
 
 /// The decision a user makes about a host key they have just been shown.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TrustDecision {
     /// First contact: nothing was pinned before.
     FirstContact { key: HostKey },
@@ -255,7 +256,7 @@ pub async fn read_transport(
 }
 
 /// What applying a protocol choice did, for the toast and the activity log.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TransportOutcome {
     /// The protocol now pinned, or `None` when the override was removed.
     pub protocol: Option<crate::domain::host::TransportProtocol>,

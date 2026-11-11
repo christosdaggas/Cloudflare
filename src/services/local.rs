@@ -31,9 +31,10 @@ use crate::remote::commands::ServiceAction;
 use crate::remote::controller::ServiceOutcome;
 use crate::remote::{RemoteError, RemoteResult};
 use crate::services::hosts::TransportOutcome;
+use serde::Serialize;
 
 /// What the checks found on this machine.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct LocalState {
     pub systemctl_available: bool,
     pub systemd_available: bool,
